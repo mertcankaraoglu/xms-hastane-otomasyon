@@ -106,22 +106,31 @@ export type Database = {
       chat_conversations: {
         Row: {
           created_at: string
+          feedback: string | null
           id: string
           message_count: number
+          rated_at: string | null
+          rating: number | null
           token_hash: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          feedback?: string | null
           id?: string
           message_count?: number
+          rated_at?: string | null
+          rating?: number | null
           token_hash: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          feedback?: string | null
           id?: string
           message_count?: number
+          rated_at?: string | null
+          rating?: number | null
           token_hash?: string
           updated_at?: string
         }
@@ -134,6 +143,7 @@ export type Database = {
           created_at: string
           id: string
           role: string
+          sources: Json | null
         }
         Insert: {
           content: string
@@ -141,6 +151,7 @@ export type Database = {
           created_at?: string
           id?: string
           role: string
+          sources?: Json | null
         }
         Update: {
           content?: string
@@ -148,6 +159,7 @@ export type Database = {
           created_at?: string
           id?: string
           role?: string
+          sources?: Json | null
         }
         Relationships: [
           {
@@ -327,6 +339,7 @@ export type Database = {
           embedding: string | null
           id: string
           sort_order: number
+          source_name: string | null
           title: string
           updated_at: string
         }
@@ -337,6 +350,7 @@ export type Database = {
           embedding?: string | null
           id?: string
           sort_order?: number
+          source_name?: string | null
           title: string
           updated_at?: string
         }
@@ -347,6 +361,7 @@ export type Database = {
           embedding?: string | null
           id?: string
           sort_order?: number
+          source_name?: string | null
           title?: string
           updated_at?: string
         }
@@ -486,6 +501,10 @@ export type Database = {
         Args: { _content: string; _id: string; _role: string; _token: string }
         Returns: undefined
       }
+      chat_append_assistant: {
+        Args: { _content: string; _id: string; _sources: Json; _token: string }
+        Returns: undefined
+      }
       chat_check: { Args: { _id: string; _token: string }; Returns: boolean }
       chat_history: {
         Args: { _id: string; _token: string }
@@ -494,6 +513,15 @@ export type Database = {
           created_at: string
           role: string
         }[]
+      }
+      chat_rate: {
+        Args: {
+          _feedback: string
+          _id: string
+          _rating: number
+          _token: string
+        }
+        Returns: undefined
       }
       chat_start: {
         Args: never
