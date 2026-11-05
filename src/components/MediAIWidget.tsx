@@ -8,6 +8,15 @@ import { chatHistory, chatSend, chatStart } from "@/lib/medi-ai.functions";
 type Msg = { role: "user" | "assistant"; content: string };
 const KEY = "medi-ai-conv";
 const GREETING: Msg = { role: "assistant", content: "Merhaba, ben **Medi AI** 👋 Medicare Hastanesi'nin sanal asistanıyım. Randevu alabilir, randevunuzu sorgulayabilir veya hastanemiz hakkında sorularınızı yanıtlayabilirim." };
+function parse(content: string): { text: string; chips: string[] } {
+  const re = /\[\[\s*öneri\s*:([^\]]*)\]\]/gi;
+  const chips: string[] = [];
+  const text = content.replace(re, (_, list: string) => {
+    list.split("|").map((s) => s.trim()).filter(Boolean).forEach((s) => chips.push(s));
+    return "";
+  }).trim();
+  return { text, chips: chips.slice(0, 8) };
+}
 const SUGGESTIONS = ["Randevu almak istiyorum", "Randevumu sorgula", "Hangi bölüme gitmeliyim?", "Hastaneniz hakkında bilgi"];
 
 export function MediAIWidget() {
@@ -107,10 +116,18 @@ export function MediAIWidget() {
                 <div className={m.role === "user"
                   ? "max-w-[80%] rounded-2xl rounded-br-sm bg-primary px-3.5 py-2 text-sm text-primary-foreground"
                   : "medi-md max-w-[85%] text-sm leading-relaxed"}>
-                  {m.role === "user" ? m.content : <ReactMarkdown>{m.content}</ReactMarkdown>}
+                  {m.role === "user" ? m.content : <ReactMarkdown>{parse(m.content).text}</ReactMarkdown>}
                 </div>
               </div>
             ))}
+            {!busy && msgs.length > 0 && msgs[msgs.length - 1].role === "assistant" && (() => {
+              const chips = parse(msgs[msgs.length - 1].content).chips;
+              return chips.length > 0 && (
+                <div className="flex flex-wrap gap-2 pl-9">
+                  {chips.map((s) => <button key={s} onClick={() => send(s)} className="rounded-full border border-primary/40 bg-primary-soft px-3 py-1.5 text-xs font-medium text-primary hover:border-primary hover:bg-primary hover:text-primary-foreground">{s}</button>)}
+                </div>
+              );
+            })()}
             {busy && (
               <div className="flex items-center gap-2">
                 <img src={nurse} alt="" width={28} height={28} className="h-7 w-7 rounded-full bg-primary-soft object-cover object-top" />
