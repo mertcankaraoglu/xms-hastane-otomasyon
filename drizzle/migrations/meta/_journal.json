@@ -50,6 +50,13 @@
       "when": 1793895996594,
       "tag": "0006_dept_doctor_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793897030279,
+      "tag": "0007_drop_unused_media_policies",
+      "breakpoints": true
     }
   ]
 }
