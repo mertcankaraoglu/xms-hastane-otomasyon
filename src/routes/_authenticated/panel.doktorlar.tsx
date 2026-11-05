@@ -36,22 +36,22 @@ function DoctorsPage() {
   const refresh = () => qc.invalidateQueries({ queryKey: ["doctors"] });
 
   async function save() {
-    if (!form || form.full_name.trim().length < 3 || !form.department_id) return toast.error("Ad ve departman zorunlu");
+    if (!form || form.full_name.trim().length < 3 || !form.department_id) { toast.error("Ad ve departman zorunlu"); return; }
     const { id, ...payload } = form;
     const { error } = id ? await supabase.from("doctors").update(payload).eq("id", id) : await supabase.from("doctors").insert(payload);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setForm(null); refresh();
   }
   async function remove(id: string) {
     if (!confirm("Doktor ve tüm randevuları silinecek. Bunun yerine pasif yapmayı düşünün. Devam?")) return;
     const { error } = await supabase.from("doctors").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     refresh();
   }
   async function addAsst() {
     if (!asstFor || asst.full_name.trim().length < 3) return;
     const { error } = await supabase.from("assistants").insert({ doctor_id: asstFor, full_name: asst.full_name.trim(), phone: asst.phone || null });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setAsst({ full_name: "", phone: "" }); refresh();
   }
   async function removeAsst(id: string) {

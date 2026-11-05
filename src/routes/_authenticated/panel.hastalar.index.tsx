@@ -34,11 +34,11 @@ function PatientsPage() {
   });
 
   async function create() {
-    if (f.full_name.trim().length < 3 || f.phone.trim().length < 10) return toast.error("Ad ve telefon zorunlu");
+    if (f.full_name.trim().length < 3 || f.phone.trim().length < 10) { toast.error("Ad ve telefon zorunlu"); return; }
     const { error } = await supabase.from("patients").insert({
       full_name: f.full_name.trim(), tc_no: f.tc_no.trim() || null, phone: f.phone.trim(), email: f.email.trim() || null, birth_date: f.birth_date || null,
     });
-    if (error) return toast.error(error.code === "23505" ? "Bu TC ile kayıtlı hasta var" : error.message);
+    if (error) { toast.error(error.code === "23505" ? "Bu TC ile kayıtlı hasta var" : error.message); return; }
     toast.success("Hasta eklendi");
     setOpen(false); setF({ full_name: "", tc_no: "", phone: "", email: "", birth_date: "" });
     qc.invalidateQueries({ queryKey: ["patients"] });

@@ -3,13 +3,13 @@ export type WorkingHours = Record<string, [string, string]>;
 
 /** ymd = "YYYY-MM-DD" in Istanbul local date. Returns ISO strings of slot starts. */
 export function generateSlots(ymd: string, hours: WorkingHours, slotMinutes: number): string[] {
-  const [y, m, d] = ymd.split("-").map(Number);
+  const [y = 0, m = 1, d = 1] = ymd.split("-").map(Number);
   const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay(); // 0=Sun
   const key = String(dow === 0 ? 7 : dow);
   const range = hours[key];
   if (!range || slotMinutes <= 0) return [];
   const toMin = (s: string) => {
-    const [h, mm] = s.split(":").map(Number);
+    const [h = 0, mm = 0] = s.split(":").map(Number);
     return h * 60 + mm;
   };
   const out: string[] = [];

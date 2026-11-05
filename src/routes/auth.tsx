@@ -33,12 +33,12 @@ function AuthPage() {
     if (mode === "in") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       setLoading(false);
-      if (error) return toast.error("Giriş başarısız: " + error.message);
+      if (error) { toast.error("Giriş başarısız: " + error.message); return; }
       navigate({ to: "/panel" });
     } else {
       const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin + "/panel" } });
       setLoading(false);
-      if (error) return toast.error(error.message);
+      if (error) { toast.error(error.message); return; }
       if (data.session) navigate({ to: "/panel" });
       else toast.success("Hesap oluşturuldu. E-postanıza gelen bağlantı ile hesabınızı onaylayın.");
     }

@@ -27,16 +27,16 @@ function DeptPage() {
   const [form, setForm] = useState<Form | null>(null);
 
   async function save() {
-    if (!form || form.name.trim().length < 2) return toast.error("Ad girin");
+    if (!form || form.name.trim().length < 2) { toast.error("Ad girin"); return; }
     const payload = { name: form.name.trim(), description: form.description, icon: form.icon, sort_order: form.sort_order };
     const { error } = form.id ? await supabase.from("departments").update(payload).eq("id", form.id) : await supabase.from("departments").insert(payload);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setForm(null); qc.invalidateQueries({ queryKey: ["departments"] });
   }
   async function remove(id: string) {
     if (!confirm("Departman ve bağlı tüm doktorlar silinecek. Emin misiniz?")) return;
     const { error } = await supabase.from("departments").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["departments"] }); qc.invalidateQueries({ queryKey: ["doctors"] });
   }
 

@@ -30,16 +30,16 @@ function LookupPage() {
   const [loading, setLoading] = useState(false);
 
   async function lookup() {
-    if (code.trim().length < 6 || phone.trim().length < 10) return toast.error("Kod ve telefon girin");
+    if (code.trim().length < 6 || phone.trim().length < 10) { toast.error("Kod ve telefon girin"); return; }
     setLoading(true);
     const { data, error } = await supabase.rpc("lookup_appointment", { _code: code.trim(), _phone: phone.trim() });
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setRes((data?.[0] as Result) ?? null);
   }
   async function cancel() {
     const { data, error } = await supabase.rpc("cancel_appointment_public", { _code: code.trim(), _phone: phone.trim() });
-    if (error || !data) return toast.error("Randevu iptal edilemedi");
+    if (error || !data) { toast.error("Randevu iptal edilemedi"); return; }
     toast.success("Randevunuz iptal edildi");
     lookup();
   }

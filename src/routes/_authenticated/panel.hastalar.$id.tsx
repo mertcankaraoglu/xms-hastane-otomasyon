@@ -37,19 +37,19 @@ function PatientDetail() {
       return { patient: p.data, appts: (a.data ?? []) as unknown as ApptRow[], notes: n.data ?? [] };
     },
   });
-  const [edit, setEdit] = useState<Record<string, string> | null>(null);
+  const [edit, setEdit] = useState<{ full_name: string; tc_no: string; phone: string; email: string; notes: string } | null>(null);
 
   if (!data) return <p className="text-muted-foreground">Yükleniyor...</p>;
   const { patient, appts, notes } = data;
 
   async function addNote() {
-    if (note.notes.trim().length < 2) return toast.error("Not girin");
+    if (note.notes.trim().length < 2) { toast.error("Not girin"); return; }
     const appt = appts.find((a) => a.id === note.appointment_id);
     const { error } = await supabase.from("visit_notes").insert({
       patient_id: id, appointment_id: appt?.id ?? null, doctor_id: appt?.doctor_id ?? null,
       diagnosis: note.diagnosis.trim() || null, notes: note.notes.trim(),
     });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setNote({ appointment_id: "none", diagnosis: "", notes: "" });
     qc.invalidateQueries({ queryKey: ["patient", id] });
   }
@@ -58,7 +58,7 @@ function PatientDetail() {
     const { error } = await supabase.from("patients").update({
       full_name: edit.full_name, phone: edit.phone, tc_no: edit.tc_no || null, email: edit.email || null, notes: edit.notes || null,
     }).eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setEdit(null); toast.success("Kaydedildi");
     qc.invalidateQueries({ queryKey: ["patient", id] });
   }

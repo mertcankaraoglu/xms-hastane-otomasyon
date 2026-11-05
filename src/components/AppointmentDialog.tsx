@@ -12,7 +12,7 @@ import { departmentsQuery, doctorsQuery, type ApptRow } from "@/lib/panel-data";
 import { STATUSES, STATUS_LABEL, fmtTime, type Status } from "@/lib/hospital";
 import { generateSlots, dayBoundsUtc, istanbulYmd, type WorkingHours } from "@/lib/slots";
 
-type Props = { open: boolean; onOpenChange: (o: boolean) => void; appt?: ApptRow | null; defaultDate?: string };
+type Props = { open: boolean; onOpenChange: (o: boolean) => void; appt?: ApptRow | null | undefined; defaultDate?: string | undefined };
 
 export function AppointmentDialog({ open, onOpenChange, appt, defaultDate }: Props) {
   const qc = useQueryClient();
@@ -62,13 +62,13 @@ export function AppointmentDialog({ open, onOpenChange, appt, defaultDate }: Pro
   });
 
   async function save() {
-    if (!doctor || !slot) return toast.error("Doktor ve saat seçin");
+    if (!doctor || !slot) { toast.error("Doktor ve saat seçin"); return; }
     setSaving(true);
     let pid = patientId;
     if (!pid) {
-      if (newP.full_name.trim().length < 3 || newP.phone.trim().length < 10) { setSaving(false); return toast.error("Hasta seçin veya yeni hasta bilgilerini girin"); }
+      if (newP.full_name.trim().length < 3 || newP.phone.trim().length < 10) { setSaving(false); { toast.error("Hasta seçin veya yeni hasta bilgilerini girin"); return; } }
       const { data, error } = await supabase.from("patients").insert({ full_name: newP.full_name.trim(), tc_no: newP.tc_no.trim() || null, phone: newP.phone.trim() }).select("id").single();
-      if (error) { setSaving(false); return toast.error(error.message); }
+      if (error) { setSaving(false); { toast.error(error.message); return; } }
       pid = data.id;
     }
     const ends = new Date(new Date(slot).getTime() + doctor.slot_minutes * 60000).toISOString();
@@ -77,7 +77,7 @@ export function AppointmentDialog({ open, onOpenChange, appt, defaultDate }: Pro
       ? await supabase.from("appointments").update(payload).eq("id", appt.id)
       : await supabase.from("appointments").insert({ ...payload, source: "panel" });
     setSaving(false);
-    if (error) return toast.error(error.code === "23505" ? "Bu saat dolu" : error.message);
+    if (error) { toast.error(error.code === "23505" ? "Bu saat dolu" : error.message); return; }
     toast.success(appt ? "Randevu güncellendi" : "Randevu oluşturuldu");
     qc.invalidateQueries({ queryKey: ["appointments"] });
     qc.invalidateQueries({ queryKey: ["patient"] });

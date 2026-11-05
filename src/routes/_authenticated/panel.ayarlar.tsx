@@ -38,7 +38,7 @@ function ClosedDays() {
   async function add() {
     if (!day) return;
     const { error } = await supabase.from("closed_days").upsert({ day, reason: reason || null });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setDay(""); setReason(""); qc.invalidateQueries({ queryKey: ["closed-days-panel"] });
   }
   async function remove(d: string) {
@@ -76,12 +76,12 @@ function Staff() {
 
   async function add() {
     const r = await grant({ data: { email, role } });
-    if (!r.ok) return toast.error(r.error);
+    if (!r.ok) { toast.error(r.error); return; }
     toast.success("Yetki verildi"); setEmail(""); qc.invalidateQueries({ queryKey: ["staff"] });
   }
   async function remove(id: string) {
     const r = await revoke({ data: { id } });
-    if (!r.ok) return toast.error(r.error);
+    if (!r.ok) { toast.error(r.error); return; }
     qc.invalidateQueries({ queryKey: ["staff"] });
   }
   return (

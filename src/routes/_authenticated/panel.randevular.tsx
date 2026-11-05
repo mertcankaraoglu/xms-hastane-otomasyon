@@ -37,7 +37,7 @@ function ListPage() {
 
   async function setRowStatus(id: string, st: Status) {
     const { error } = await supabase.from("appointments").update({ status: st }).eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["appointments"] });
   }
 
