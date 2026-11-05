@@ -16,7 +16,7 @@ import { generateSlots, istanbulYmd, dayBoundsUtc, type WorkingHours } from "@/l
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/randevu")({
-  validateSearch: z.object({ department: z.string().optional() }),
+  validateSearch: z.object({ department: z.string().optional(), doctor: z.string().optional() }),
   head: () => ({
     meta: [
       { title: `Online Randevu Al — ${HOSPITAL_NAME}` },
@@ -39,7 +39,7 @@ const patientSchema = z.object({
 function BookingPage() {
   const search = Route.useSearch();
   const [deptId, setDeptId] = useState<string | undefined>(search.department);
-  const [doctorId, setDoctorId] = useState<string>();
+  const [doctorId, setDoctorId] = useState<string | undefined>(search.doctor);
   const [date, setDate] = useState<Date>();
   const [slot, setSlot] = useState<string>();
   const [form, setForm] = useState({ full_name: "", tc_no: "", phone: "", email: "", complaint: "" });
