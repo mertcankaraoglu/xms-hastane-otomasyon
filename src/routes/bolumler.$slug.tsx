@@ -40,7 +40,8 @@ function DeptPage() {
     <div className="min-h-screen">
       <PublicHeader />
       <section className="relative overflow-hidden bg-hero">
-        {dept.cover_url && <img src={dept.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-15" />}
+        <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.07] [background-image:radial-gradient(currentColor_1px,transparent_1px)] [background-size:22px_22px] text-primary" />
+        <Icon aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-80 w-80 text-primary opacity-[0.08] md:right-10" strokeWidth={1} />
         <div className="relative mx-auto max-w-6xl px-4 py-16 md:py-20">
           <Link to="/bolumler" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary"><ArrowLeft className="h-4 w-4" /> Tüm bölümler</Link>
           <div className="mt-6 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
@@ -56,6 +57,11 @@ function DeptPage() {
 
       <div className="mx-auto grid max-w-6xl gap-12 px-4 py-14 lg:grid-cols-[1fr_340px]">
         <div className="space-y-12">
+          {dept.cover_url && (
+            <figure className="overflow-hidden rounded-3xl border shadow-soft">
+              <img src={dept.cover_url} alt={`${dept.name} bölümü`} width={1600} height={900} className="aspect-[16/9] w-full object-cover" />
+            </figure>
+          )}
           {dept.long_description && (
             <section>
               <h2 className="text-2xl font-bold">Hakkında</h2>
