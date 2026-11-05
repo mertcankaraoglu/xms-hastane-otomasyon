@@ -37,9 +37,17 @@ function ClosedDays() {
   const { data = [] } = useQuery({ queryKey: ["closed-days-panel"], queryFn: async () => (await supabase.from("closed_days").select("*").order("day")).data ?? [] });
   async function add() {
     if (!day) return;
+    const from = new Date(`${day}T00:00:00+03:00`).toISOString();
+    const to = new Date(new Date(from).getTime() + 86400000).toISOString();
+    const { count } = await supabase.from("appointments").select("id", { count: "exact", head: true })
+      .in("status", ["pending", "confirmed"]).gte("starts_at", from).lt("starts_at", to);
+    if (count && !confirm(`Bu tarihte ${count} aktif randevu var. Hepsi iptal edilecek. Devam edilsin mi?`)) return;
     const { error } = await supabase.from("closed_days").upsert({ day, reason: reason || null });
     if (error) { toast.error(error.message); return; }
-    setDay(""); setReason(""); qc.invalidateQueries({ queryKey: ["closed-days-panel"] });
+    toast.success(count ? `Tatil eklendi, ${count} randevu iptal edildi` : "Tatil eklendi");
+    setDay(""); setReason("");
+    qc.invalidateQueries({ queryKey: ["closed-days-panel"] });
+    qc.invalidateQueries({ queryKey: ["appointments"] });
   }
   async function remove(d: string) {
     await supabase.from("closed_days").delete().eq("day", d); qc.invalidateQueries({ queryKey: ["closed-days-panel"] });
