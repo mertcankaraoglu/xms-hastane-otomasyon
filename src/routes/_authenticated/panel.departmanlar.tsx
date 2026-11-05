@@ -41,6 +41,11 @@ function DeptPage() {
     toast.success("Kaydedildi");
     setForm(null); qc.invalidateQueries({ queryKey: ["departments"] });
   }
+  async function openEdit(d: (typeof depts)[number]) {
+    const { data: faqs } = await supabase.from("department_faqs").select("question, answer").eq("department_id", d.id).order("sort_order");
+    setForm({ id: d.id, name: d.name, description: d.description ?? "", icon: d.icon, sort_order: d.sort_order, short_description: d.short_description ?? "",
+      long_description: d.long_description ?? "", services: (d.services ?? []).join("\n"), cover_url: d.cover_url ?? "", faqs: faqs ?? [] });
+  }
   async function remove(id: string) {
     if (!confirm("Departman ve bağlı tüm doktorlar silinecek. Emin misiniz?")) return;
     const { error } = await supabase.from("departments").delete().eq("id", id);
@@ -63,7 +68,7 @@ function DeptPage() {
               <div className="flex items-start justify-between">
                 <Icon className="h-7 w-7 text-primary" />
                 <div className="flex gap-1">
-                  <Button size="icon" variant="ghost" onClick={() => setForm({ id: d.id, name: d.name, description: d.description ?? "", icon: d.icon, sort_order: d.sort_order })}><Pencil className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" onClick={() => openEdit(d)}><Pencil className="h-4 w-4" /></Button>
                   <Button size="icon" variant="ghost" onClick={() => remove(d.id)}><Trash2 className="h-4 w-4" /></Button>
                 </div>
               </div>
