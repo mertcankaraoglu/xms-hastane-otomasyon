@@ -103,6 +103,62 @@ export type Database = {
           },
         ]
       }
+      chat_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          message_count: number
+          token_hash: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_count?: number
+          token_hash: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_count?: number
+          token_hash?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      chat_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          role: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          role: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "chat_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       closed_days: {
         Row: {
           day: string
@@ -263,6 +319,39 @@ export type Database = {
           },
         ]
       }
+      kb_articles: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          embedding: string | null
+          id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          content: string
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       patients: {
         Row: {
           birth_date: string | null
@@ -393,6 +482,26 @@ export type Database = {
         Args: { _code: string; _phone: string }
         Returns: boolean
       }
+      chat_append: {
+        Args: { _content: string; _id: string; _role: string; _token: string }
+        Returns: undefined
+      }
+      chat_check: { Args: { _id: string; _token: string }; Returns: boolean }
+      chat_history: {
+        Args: { _id: string; _token: string }
+        Returns: {
+          content: string
+          created_at: string
+          role: string
+        }[]
+      }
+      chat_start: {
+        Args: never
+        Returns: {
+          id: string
+          token: string
+        }[]
+      }
       get_booked_slots: {
         Args: { _doctor_id: string; _from: string; _to: string }
         Returns: string[]
@@ -414,6 +523,16 @@ export type Database = {
           patient_name: string
           starts_at: string
           status: Database["public"]["Enums"]["appointment_status"]
+        }[]
+      }
+      match_kb: {
+        Args: { _count?: number; _embedding: string }
+        Returns: {
+          category: string
+          content: string
+          id: string
+          similarity: number
+          title: string
         }[]
       }
       tr_slugify: { Args: { _t: string }; Returns: string }
