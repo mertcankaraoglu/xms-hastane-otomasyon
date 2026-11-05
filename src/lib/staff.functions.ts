@@ -12,7 +12,7 @@ export const listStaff = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     await assertSuperadmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: roles } = await supabaseAdmin.from("user_roles").select("id, user_id, role");
+    const { data: roles } = await supabaseAdmin.from("user_roles").select("id, user_id, role, active");
     const { data: users } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
     const all = users?.users ?? [];
     const staff = (roles ?? []).map((r) => ({ ...r, email: all.find((u) => u.id === r.user_id)?.email ?? "?" }));
@@ -46,5 +46,19 @@ export const revokeRole = createServerFn({ method: "POST" })
     const { data: row } = await supabaseAdmin.from("user_roles").select("user_id, role").eq("id", data.id).single();
     if (row?.role === "superadmin") return { ok: false as const, error: "Süper yönetici yetkisi kaldırılamaz" };
     await supabaseAdmin.from("user_roles").delete().eq("id", data.id);
+    return { ok: true as const };
+  });
+
+export const setStaffActive = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid(), active: z.boolean() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertSuperadmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row } = await supabaseAdmin.from("user_roles").select("role").eq("id", data.id).single();
+    if (!row) return { ok: false as const, error: "Kullanıcı bulunamadı" };
+    if (row.role === "superadmin") return { ok: false as const, error: "Süper yönetici pasife alınamaz" };
+    const { error } = await supabaseAdmin.from("user_roles").update({ active: data.active }).eq("id", data.id);
+    if (error) return { ok: false as const, error: error.message };
     return { ok: true as const };
   });
