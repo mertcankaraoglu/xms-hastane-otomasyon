@@ -43,6 +43,13 @@
       "when": 1793893823443,
       "tag": "0005_user_roles_active",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793895996594,
+      "tag": "0006_dept_doctor_profiles",
+      "breakpoints": true
     }
   ]
 }
