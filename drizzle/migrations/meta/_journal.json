@@ -57,6 +57,13 @@
       "when": 1793897030279,
       "tag": "0007_drop_unused_media_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793898036272,
+      "tag": "0008_medi_ai_chat",
+      "breakpoints": true
     }
   ]
 }
