@@ -15,6 +15,9 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as RandevuRouteImport } from './routes/randevu'
 import { Route as RandevuSorgulaRouteImport } from './routes/randevu-sorgula'
 import { Route as AuthenticatedPanelIndexRouteImport } from './routes/_authenticated/panel.index'
+import { Route as AuthenticatedPanelAyarlarRouteImport } from './routes/_authenticated/panel.ayarlar'
+import { Route as AuthenticatedPanelDepartmanlarRouteImport } from './routes/_authenticated/panel.departmanlar'
+import { Route as AuthenticatedPanelDoktorlarRouteImport } from './routes/_authenticated/panel.doktorlar'
 import { Route as AuthenticatedPanelRandevularRouteImport } from './routes/_authenticated/panel.randevular'
 import { Route as AuthenticatedPanelTakvimRouteImport } from './routes/_authenticated/panel.takvim'
 import { Route as AuthenticatedPanelHastalarIndexRouteImport } from './routes/_authenticated/panel.hastalar.index'
@@ -49,6 +52,24 @@ const AuthenticatedPanelIndexRoute = AuthenticatedPanelIndexRouteImport.update({
   path: '/panel/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPanelAyarlarRoute =
+  AuthenticatedPanelAyarlarRouteImport.update({
+    id: '/panel/ayarlar',
+    path: '/panel/ayarlar',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPanelDepartmanlarRoute =
+  AuthenticatedPanelDepartmanlarRouteImport.update({
+    id: '/panel/departmanlar',
+    path: '/panel/departmanlar',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPanelDoktorlarRoute =
+  AuthenticatedPanelDoktorlarRouteImport.update({
+    id: '/panel/doktorlar',
+    path: '/panel/doktorlar',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPanelRandevularRoute =
   AuthenticatedPanelRandevularRouteImport.update({
     id: '/panel/randevular',
@@ -79,6 +100,9 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/randevu': typeof RandevuRoute
   '/randevu-sorgula': typeof RandevuSorgulaRoute
+  '/panel/ayarlar': typeof AuthenticatedPanelAyarlarRoute
+  '/panel/departmanlar': typeof AuthenticatedPanelDepartmanlarRoute
+  '/panel/doktorlar': typeof AuthenticatedPanelDoktorlarRoute
   '/panel/randevular': typeof AuthenticatedPanelRandevularRoute
   '/panel/takvim': typeof AuthenticatedPanelTakvimRoute
   '/panel/': typeof AuthenticatedPanelIndexRoute
@@ -90,6 +114,9 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/randevu': typeof RandevuRoute
   '/randevu-sorgula': typeof RandevuSorgulaRoute
+  '/panel/ayarlar': typeof AuthenticatedPanelAyarlarRoute
+  '/panel/departmanlar': typeof AuthenticatedPanelDepartmanlarRoute
+  '/panel/doktorlar': typeof AuthenticatedPanelDoktorlarRoute
   '/panel/randevular': typeof AuthenticatedPanelRandevularRoute
   '/panel/takvim': typeof AuthenticatedPanelTakvimRoute
   '/panel': typeof AuthenticatedPanelIndexRoute
@@ -103,6 +130,9 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/randevu': typeof RandevuRoute
   '/randevu-sorgula': typeof RandevuSorgulaRoute
+  '/_authenticated/panel/ayarlar': typeof AuthenticatedPanelAyarlarRoute
+  '/_authenticated/panel/departmanlar': typeof AuthenticatedPanelDepartmanlarRoute
+  '/_authenticated/panel/doktorlar': typeof AuthenticatedPanelDoktorlarRoute
   '/_authenticated/panel/randevular': typeof AuthenticatedPanelRandevularRoute
   '/_authenticated/panel/takvim': typeof AuthenticatedPanelTakvimRoute
   '/_authenticated/panel/': typeof AuthenticatedPanelIndexRoute
@@ -116,6 +146,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/randevu'
     | '/randevu-sorgula'
+    | '/panel/ayarlar'
+    | '/panel/departmanlar'
+    | '/panel/doktorlar'
     | '/panel/randevular'
     | '/panel/takvim'
     | '/panel/'
@@ -127,6 +160,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/randevu'
     | '/randevu-sorgula'
+    | '/panel/ayarlar'
+    | '/panel/departmanlar'
+    | '/panel/doktorlar'
     | '/panel/randevular'
     | '/panel/takvim'
     | '/panel'
@@ -139,6 +175,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/randevu'
     | '/randevu-sorgula'
+    | '/_authenticated/panel/ayarlar'
+    | '/_authenticated/panel/departmanlar'
+    | '/_authenticated/panel/doktorlar'
     | '/_authenticated/panel/randevular'
     | '/_authenticated/panel/takvim'
     | '/_authenticated/panel/'
@@ -198,6 +237,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPanelIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/panel/ayarlar': {
+      id: '/_authenticated/panel/ayarlar'
+      path: '/panel/ayarlar'
+      fullPath: '/panel/ayarlar'
+      preLoaderRoute: typeof AuthenticatedPanelAyarlarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/panel/departmanlar': {
+      id: '/_authenticated/panel/departmanlar'
+      path: '/panel/departmanlar'
+      fullPath: '/panel/departmanlar'
+      preLoaderRoute: typeof AuthenticatedPanelDepartmanlarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/panel/doktorlar': {
+      id: '/_authenticated/panel/doktorlar'
+      path: '/panel/doktorlar'
+      fullPath: '/panel/doktorlar'
+      preLoaderRoute: typeof AuthenticatedPanelDoktorlarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/panel/randevular': {
       id: '/_authenticated/panel/randevular'
       path: '/panel/randevular'
@@ -230,6 +290,9 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedPanelAyarlarRoute: typeof AuthenticatedPanelAyarlarRoute
+  AuthenticatedPanelDepartmanlarRoute: typeof AuthenticatedPanelDepartmanlarRoute
+  AuthenticatedPanelDoktorlarRoute: typeof AuthenticatedPanelDoktorlarRoute
   AuthenticatedPanelRandevularRoute: typeof AuthenticatedPanelRandevularRoute
   AuthenticatedPanelTakvimRoute: typeof AuthenticatedPanelTakvimRoute
   AuthenticatedPanelIndexRoute: typeof AuthenticatedPanelIndexRoute
@@ -238,6 +301,9 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedPanelAyarlarRoute: AuthenticatedPanelAyarlarRoute,
+  AuthenticatedPanelDepartmanlarRoute: AuthenticatedPanelDepartmanlarRoute,
+  AuthenticatedPanelDoktorlarRoute: AuthenticatedPanelDoktorlarRoute,
   AuthenticatedPanelRandevularRoute: AuthenticatedPanelRandevularRoute,
   AuthenticatedPanelTakvimRoute: AuthenticatedPanelTakvimRoute,
   AuthenticatedPanelIndexRoute: AuthenticatedPanelIndexRoute,
