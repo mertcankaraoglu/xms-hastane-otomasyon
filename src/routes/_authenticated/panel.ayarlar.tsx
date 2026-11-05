@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -13,12 +13,14 @@ import { grantRole, listStaff, revokeRole } from "@/lib/staff.functions";
 
 export const Route = createFileRoute("/_authenticated/panel/ayarlar")({
   head: () => ({ meta: [{ title: "Ayarlar — Yönetim Paneli" }, { name: "description", content: "Kapalı günler ve kullanıcılar" }, { property: "og:title", content: "Ayarlar" }, { property: "og:description", content: "Kapalı günler ve kullanıcılar" }] }),
+  beforeLoad: ({ context }) => {
+    if (!context.roles.includes("superadmin")) throw redirect({ to: "/panel" });
+  },
   component: SettingsPage,
 });
 
 function SettingsPage() {
-  const { roles } = Route.useRouteContext();
-  const isAdmin = roles.includes("admin");
+  const isAdmin = true;
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Ayarlar</h1>
