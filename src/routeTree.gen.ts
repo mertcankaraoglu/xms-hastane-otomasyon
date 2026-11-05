@@ -20,9 +20,11 @@ import { Route as DoktorlarIndexRouteImport } from './routes/doktorlar.index'
 import { Route as DoktorlarSlugRouteImport } from './routes/doktorlar.$slug'
 import { Route as AuthenticatedPanelIndexRouteImport } from './routes/_authenticated/panel.index'
 import { Route as AuthenticatedPanelAyarlarRouteImport } from './routes/_authenticated/panel.ayarlar'
+import { Route as AuthenticatedPanelBilgiBankasiRouteImport } from './routes/_authenticated/panel.bilgi-bankasi'
 import { Route as AuthenticatedPanelDepartmanlarRouteImport } from './routes/_authenticated/panel.departmanlar'
 import { Route as AuthenticatedPanelDoktorlarRouteImport } from './routes/_authenticated/panel.doktorlar'
 import { Route as AuthenticatedPanelRandevularRouteImport } from './routes/_authenticated/panel.randevular'
+import { Route as AuthenticatedPanelSohbetlerRouteImport } from './routes/_authenticated/panel.sohbetler'
 import { Route as AuthenticatedPanelTakvimRouteImport } from './routes/_authenticated/panel.takvim'
 import { Route as AuthenticatedPanelHastalarIndexRouteImport } from './routes/_authenticated/panel.hastalar.index'
 import { Route as AuthenticatedPanelHastalarIdRouteImport } from './routes/_authenticated/panel.hastalar.$id'
@@ -82,6 +84,12 @@ const AuthenticatedPanelAyarlarRoute =
     path: '/panel/ayarlar',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPanelBilgiBankasiRoute =
+  AuthenticatedPanelBilgiBankasiRouteImport.update({
+    id: '/panel/bilgi-bankasi',
+    path: '/panel/bilgi-bankasi',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPanelDepartmanlarRoute =
   AuthenticatedPanelDepartmanlarRouteImport.update({
     id: '/panel/departmanlar',
@@ -98,6 +106,12 @@ const AuthenticatedPanelRandevularRoute =
   AuthenticatedPanelRandevularRouteImport.update({
     id: '/panel/randevular',
     path: '/panel/randevular',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPanelSohbetlerRoute =
+  AuthenticatedPanelSohbetlerRouteImport.update({
+    id: '/panel/sohbetler',
+    path: '/panel/sohbetler',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPanelTakvimRoute =
@@ -129,9 +143,11 @@ export interface FileRoutesByFullPath {
   '/bolumler/': typeof BolumlerIndexRoute
   '/doktorlar/': typeof DoktorlarIndexRoute
   '/panel/ayarlar': typeof AuthenticatedPanelAyarlarRoute
+  '/panel/bilgi-bankasi': typeof AuthenticatedPanelBilgiBankasiRoute
   '/panel/departmanlar': typeof AuthenticatedPanelDepartmanlarRoute
   '/panel/doktorlar': typeof AuthenticatedPanelDoktorlarRoute
   '/panel/randevular': typeof AuthenticatedPanelRandevularRoute
+  '/panel/sohbetler': typeof AuthenticatedPanelSohbetlerRoute
   '/panel/takvim': typeof AuthenticatedPanelTakvimRoute
   '/panel/': typeof AuthenticatedPanelIndexRoute
   '/panel/hastalar/$id': typeof AuthenticatedPanelHastalarIdRoute
@@ -147,9 +163,11 @@ export interface FileRoutesByTo {
   '/bolumler': typeof BolumlerIndexRoute
   '/doktorlar': typeof DoktorlarIndexRoute
   '/panel/ayarlar': typeof AuthenticatedPanelAyarlarRoute
+  '/panel/bilgi-bankasi': typeof AuthenticatedPanelBilgiBankasiRoute
   '/panel/departmanlar': typeof AuthenticatedPanelDepartmanlarRoute
   '/panel/doktorlar': typeof AuthenticatedPanelDoktorlarRoute
   '/panel/randevular': typeof AuthenticatedPanelRandevularRoute
+  '/panel/sohbetler': typeof AuthenticatedPanelSohbetlerRoute
   '/panel/takvim': typeof AuthenticatedPanelTakvimRoute
   '/panel': typeof AuthenticatedPanelIndexRoute
   '/panel/hastalar/$id': typeof AuthenticatedPanelHastalarIdRoute
@@ -167,9 +185,11 @@ export interface FileRoutesById {
   '/bolumler/': typeof BolumlerIndexRoute
   '/doktorlar/': typeof DoktorlarIndexRoute
   '/_authenticated/panel/ayarlar': typeof AuthenticatedPanelAyarlarRoute
+  '/_authenticated/panel/bilgi-bankasi': typeof AuthenticatedPanelBilgiBankasiRoute
   '/_authenticated/panel/departmanlar': typeof AuthenticatedPanelDepartmanlarRoute
   '/_authenticated/panel/doktorlar': typeof AuthenticatedPanelDoktorlarRoute
   '/_authenticated/panel/randevular': typeof AuthenticatedPanelRandevularRoute
+  '/_authenticated/panel/sohbetler': typeof AuthenticatedPanelSohbetlerRoute
   '/_authenticated/panel/takvim': typeof AuthenticatedPanelTakvimRoute
   '/_authenticated/panel/': typeof AuthenticatedPanelIndexRoute
   '/_authenticated/panel/hastalar/$id': typeof AuthenticatedPanelHastalarIdRoute
@@ -187,9 +207,11 @@ export interface FileRouteTypes {
     | '/bolumler/'
     | '/doktorlar/'
     | '/panel/ayarlar'
+    | '/panel/bilgi-bankasi'
     | '/panel/departmanlar'
     | '/panel/doktorlar'
     | '/panel/randevular'
+    | '/panel/sohbetler'
     | '/panel/takvim'
     | '/panel/'
     | '/panel/hastalar/$id'
@@ -205,9 +227,11 @@ export interface FileRouteTypes {
     | '/bolumler'
     | '/doktorlar'
     | '/panel/ayarlar'
+    | '/panel/bilgi-bankasi'
     | '/panel/departmanlar'
     | '/panel/doktorlar'
     | '/panel/randevular'
+    | '/panel/sohbetler'
     | '/panel/takvim'
     | '/panel'
     | '/panel/hastalar/$id'
@@ -224,9 +248,11 @@ export interface FileRouteTypes {
     | '/bolumler/'
     | '/doktorlar/'
     | '/_authenticated/panel/ayarlar'
+    | '/_authenticated/panel/bilgi-bankasi'
     | '/_authenticated/panel/departmanlar'
     | '/_authenticated/panel/doktorlar'
     | '/_authenticated/panel/randevular'
+    | '/_authenticated/panel/sohbetler'
     | '/_authenticated/panel/takvim'
     | '/_authenticated/panel/'
     | '/_authenticated/panel/hastalar/$id'
@@ -324,6 +350,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPanelAyarlarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/panel/bilgi-bankasi': {
+      id: '/_authenticated/panel/bilgi-bankasi'
+      path: '/panel/bilgi-bankasi'
+      fullPath: '/panel/bilgi-bankasi'
+      preLoaderRoute: typeof AuthenticatedPanelBilgiBankasiRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/panel/departmanlar': {
       id: '/_authenticated/panel/departmanlar'
       path: '/panel/departmanlar'
@@ -343,6 +376,13 @@ declare module '@tanstack/react-router' {
       path: '/panel/randevular'
       fullPath: '/panel/randevular'
       preLoaderRoute: typeof AuthenticatedPanelRandevularRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/panel/sohbetler': {
+      id: '/_authenticated/panel/sohbetler'
+      path: '/panel/sohbetler'
+      fullPath: '/panel/sohbetler'
+      preLoaderRoute: typeof AuthenticatedPanelSohbetlerRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/panel/takvim': {
@@ -371,9 +411,11 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedPanelAyarlarRoute: typeof AuthenticatedPanelAyarlarRoute
+  AuthenticatedPanelBilgiBankasiRoute: typeof AuthenticatedPanelBilgiBankasiRoute
   AuthenticatedPanelDepartmanlarRoute: typeof AuthenticatedPanelDepartmanlarRoute
   AuthenticatedPanelDoktorlarRoute: typeof AuthenticatedPanelDoktorlarRoute
   AuthenticatedPanelRandevularRoute: typeof AuthenticatedPanelRandevularRoute
+  AuthenticatedPanelSohbetlerRoute: typeof AuthenticatedPanelSohbetlerRoute
   AuthenticatedPanelTakvimRoute: typeof AuthenticatedPanelTakvimRoute
   AuthenticatedPanelIndexRoute: typeof AuthenticatedPanelIndexRoute
   AuthenticatedPanelHastalarIdRoute: typeof AuthenticatedPanelHastalarIdRoute
@@ -382,9 +424,11 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPanelAyarlarRoute: AuthenticatedPanelAyarlarRoute,
+  AuthenticatedPanelBilgiBankasiRoute: AuthenticatedPanelBilgiBankasiRoute,
   AuthenticatedPanelDepartmanlarRoute: AuthenticatedPanelDepartmanlarRoute,
   AuthenticatedPanelDoktorlarRoute: AuthenticatedPanelDoktorlarRoute,
   AuthenticatedPanelRandevularRoute: AuthenticatedPanelRandevularRoute,
+  AuthenticatedPanelSohbetlerRoute: AuthenticatedPanelSohbetlerRoute,
   AuthenticatedPanelTakvimRoute: AuthenticatedPanelTakvimRoute,
   AuthenticatedPanelIndexRoute: AuthenticatedPanelIndexRoute,
   AuthenticatedPanelHastalarIdRoute: AuthenticatedPanelHastalarIdRoute,

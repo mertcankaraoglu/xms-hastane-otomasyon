@@ -44,7 +44,7 @@ const TOOLS = [
   fn("lookup_appointment", "Randevu kodu ve telefon ile randevu sorgular.", { code: str("Randevu kodu"), phone: str("Telefon") }, ["code", "phone"]),
 ];
 
-async function runTool(sb: SB, name: string, a: Record<string, any>): Promise<unknown> {
+async function runTool(sb: SB, name: string, a: any): Promise<unknown> {
   switch (name) {
     case "search_knowledge": {
       let rows: { title: string; content: string }[] = [];
@@ -130,7 +130,8 @@ export async function runAgent(history: { role: "user" | "assistant"; content: s
       const res = await generateResponse({ model: "openai/gpt-6-astra", instructions: instructions(), input, tools: TOOLS });
       const calls = res.output.filter((o: any) => o.type === "function_call") as any[];
       if (calls.length === 0) {
-        return (res.output_text ?? "").trim() || "Üzgünüm, şu an yanıt veremedim.";
+        const text = (res.output as any[]).filter((o) => o.type === "message").flatMap((o) => o.content ?? []).filter((c: any) => c.type === "output_text").map((c: any) => c.text).join("\n");
+        return text.trim() || "Üzgünüm, şu an yanıt veremedim.";
       }
       input.push(...res.output);
       for (const c of calls) {
