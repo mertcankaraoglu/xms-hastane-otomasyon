@@ -54,7 +54,7 @@ async function runTool(sb: SB, name: string, a: any): Promise<unknown> {
         rows = (data ?? []) as any;
       } catch { /* fall back below */ }
       if (rows.length === 0) {
-        const { data } = await sb.from("kb_articles").select("id, title, content").order("sort_order");
+        const { data } = await sb.rpc("kb_fallback", { _count: 30 });
         rows = data ?? [];
       }
       return rows.map((r) => ({ id: r.id, title: r.title, content: r.content, similarity: r.similarity }));

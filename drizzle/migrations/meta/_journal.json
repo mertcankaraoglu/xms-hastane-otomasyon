@@ -71,6 +71,13 @@
       "when": 1793899931634,
       "tag": "0009_kb_sources_ratings_docs",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793900439179,
+      "tag": "0010_kb_restrict_direct_read",
+      "breakpoints": true
     }
   ]
 }
