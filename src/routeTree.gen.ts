@@ -10,13 +10,21 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as RandevuRouteImport } from './routes/randevu'
 import { Route as RandevuSorgulaRouteImport } from './routes/randevu-sorgula'
+import { Route as AuthenticatedPanelIndexRouteImport } from './routes/_authenticated/panel.index'
+import { Route as AuthenticatedPanelRandevularRouteImport } from './routes/_authenticated/panel.randevular'
+import { Route as AuthenticatedPanelTakvimRouteImport } from './routes/_authenticated/panel.takvim'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -34,36 +42,87 @@ const RandevuSorgulaRoute = RandevuSorgulaRouteImport.update({
   path: '/randevu-sorgula',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedPanelIndexRoute = AuthenticatedPanelIndexRouteImport.update({
+  id: '/panel/',
+  path: '/panel/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPanelRandevularRoute =
+  AuthenticatedPanelRandevularRouteImport.update({
+    id: '/panel/randevular',
+    path: '/panel/randevular',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPanelTakvimRoute =
+  AuthenticatedPanelTakvimRouteImport.update({
+    id: '/panel/takvim',
+    path: '/panel/takvim',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/randevu': typeof RandevuRoute
   '/randevu-sorgula': typeof RandevuSorgulaRoute
+  '/panel/randevular': typeof AuthenticatedPanelRandevularRoute
+  '/panel/takvim': typeof AuthenticatedPanelTakvimRoute
+  '/panel/': typeof AuthenticatedPanelIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/randevu': typeof RandevuRoute
   '/randevu-sorgula': typeof RandevuSorgulaRoute
+  '/panel/randevular': typeof AuthenticatedPanelRandevularRoute
+  '/panel/takvim': typeof AuthenticatedPanelTakvimRoute
+  '/panel': typeof AuthenticatedPanelIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/randevu': typeof RandevuRoute
   '/randevu-sorgula': typeof RandevuSorgulaRoute
+  '/_authenticated/panel/randevular': typeof AuthenticatedPanelRandevularRoute
+  '/_authenticated/panel/takvim': typeof AuthenticatedPanelTakvimRoute
+  '/_authenticated/panel/': typeof AuthenticatedPanelIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/randevu' | '/randevu-sorgula'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/randevu'
+    | '/randevu-sorgula'
+    | '/panel/randevular'
+    | '/panel/takvim'
+    | '/panel/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/randevu' | '/randevu-sorgula'
-  id: '__root__' | '/' | '/auth' | '/randevu' | '/randevu-sorgula'
+  to:
+    | '/'
+    | '/auth'
+    | '/randevu'
+    | '/randevu-sorgula'
+    | '/panel/randevular'
+    | '/panel/takvim'
+    | '/panel'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/randevu'
+    | '/randevu-sorgula'
+    | '/_authenticated/panel/randevular'
+    | '/_authenticated/panel/takvim'
+    | '/_authenticated/panel/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   RandevuRoute: typeof RandevuRoute
   RandevuSorgulaRoute: typeof RandevuSorgulaRoute
@@ -76,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -99,11 +165,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RandevuSorgulaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/panel/': {
+      id: '/_authenticated/panel/'
+      path: '/panel'
+      fullPath: '/panel/'
+      preLoaderRoute: typeof AuthenticatedPanelIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/panel/randevular': {
+      id: '/_authenticated/panel/randevular'
+      path: '/panel/randevular'
+      fullPath: '/panel/randevular'
+      preLoaderRoute: typeof AuthenticatedPanelRandevularRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/panel/takvim': {
+      id: '/_authenticated/panel/takvim'
+      path: '/panel/takvim'
+      fullPath: '/panel/takvim'
+      preLoaderRoute: typeof AuthenticatedPanelTakvimRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedPanelRandevularRoute: typeof AuthenticatedPanelRandevularRoute
+  AuthenticatedPanelTakvimRoute: typeof AuthenticatedPanelTakvimRoute
+  AuthenticatedPanelIndexRoute: typeof AuthenticatedPanelIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedPanelRandevularRoute: AuthenticatedPanelRandevularRoute,
+  AuthenticatedPanelTakvimRoute: AuthenticatedPanelTakvimRoute,
+  AuthenticatedPanelIndexRoute: AuthenticatedPanelIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   RandevuRoute: RandevuRoute,
   RandevuSorgulaRoute: RandevuSorgulaRoute,
