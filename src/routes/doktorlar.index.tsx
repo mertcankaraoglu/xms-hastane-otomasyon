@@ -24,7 +24,7 @@ export const Route = createFileRoute("/doktorlar/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  errorComponent: ({ error }) => <div className="p-10 text-center">{error.message}</div>,
+  errorComponent: ({ error }) => <div className="p-10 text-center">{error instanceof Error ? error.message : "Bir hata oluştu"}</div>,
   notFoundComponent: () => <div className="p-10 text-center">Bulunamadı.</div>,
   component: DoctorList,
 });

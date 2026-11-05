@@ -27,7 +27,7 @@ export const Route = createFileRoute("/doktorlar/$slug")({
       ],
     };
   },
-  errorComponent: ({ error }) => <div className="p-10 text-center">{error.message}</div>,
+  errorComponent: ({ error }) => <div className="p-10 text-center">{error instanceof Error ? error.message : "Bir hata oluştu"}</div>,
   notFoundComponent: () => (
     <div className="min-h-screen"><PublicHeader /><div className="p-16 text-center"><h1 className="text-2xl font-bold">Doktor bulunamadı</h1><Button asChild className="mt-4"><Link to="/doktorlar">Tüm doktorlar</Link></Button></div></div>
   ),

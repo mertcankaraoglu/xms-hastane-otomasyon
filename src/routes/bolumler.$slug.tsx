@@ -26,7 +26,7 @@ export const Route = createFileRoute("/bolumler/$slug")({
       ],
     };
   },
-  errorComponent: ({ error }) => <div className="p-10 text-center">{error.message}</div>,
+  errorComponent: ({ error }) => <div className="p-10 text-center">{error instanceof Error ? error.message : "Bir hata oluştu"}</div>,
   notFoundComponent: () => (
     <div className="min-h-screen"><PublicHeader /><div className="p-16 text-center"><h1 className="text-2xl font-bold">Bölüm bulunamadı</h1><Button asChild className="mt-4"><Link to="/bolumler">Tüm bölümler</Link></Button></div></div>
   ),
