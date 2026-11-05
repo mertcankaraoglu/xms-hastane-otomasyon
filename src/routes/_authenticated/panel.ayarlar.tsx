@@ -20,13 +20,12 @@ export const Route = createFileRoute("/_authenticated/panel/ayarlar")({
 });
 
 function SettingsPage() {
-  const isAdmin = true;
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Ayarlar</h1>
       <div className="grid gap-6 lg:grid-cols-2">
         <ClosedDays />
-        {isAdmin && <Staff />}
+        <Staff />
       </div>
     </div>
   );
@@ -75,40 +74,52 @@ function ClosedDays() {
   );
 }
 
+const ROLE_LABEL: Record<string, string> = { superadmin: "Süper yönetici", admin: "Yönetici", reception: "Resepsiyon" };
+
 function Staff() {
   const qc = useQueryClient();
   const list = useServerFn(listStaff);
   const grant = useServerFn(grantRole);
   const revoke = useServerFn(revokeRole);
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState<"admin" | "reception">("reception");
-  const { data = [] } = useQuery({ queryKey: ["staff"], queryFn: () => list() });
+  const [roleFor, setRoleFor] = useState<Record<string, "admin" | "reception">>({});
+  const { data } = useQuery({ queryKey: ["staff"], queryFn: () => list() });
 
-  async function add() {
-    const r = await grant({ data: { email, role } });
+  async function approve(userId: string) {
+    const r = await grant({ data: { userId, role: roleFor[userId] ?? "admin" } });
     if (!r.ok) { toast.error(r.error); return; }
-    toast.success("Yetki verildi"); setEmail(""); qc.invalidateQueries({ queryKey: ["staff"] });
+    toast.success("Kullanıcı onaylandı"); qc.invalidateQueries({ queryKey: ["staff"] });
   }
   async function remove(id: string) {
+    if (!confirm("Bu kullanıcının yetkisi kaldırılsın mı? Tekrar onay bekler duruma düşer.")) return;
     const r = await revoke({ data: { id } });
     if (!r.ok) { toast.error(r.error); return; }
     qc.invalidateQueries({ queryKey: ["staff"] });
   }
   return (
     <section className="rounded-xl border bg-card p-5">
-      <h2 className="font-semibold">Panel kullanıcıları</h2>
-      <p className="text-sm text-muted-foreground">Kişi önce “Personel Girişi” sayfasından kayıt olmalı, sonra buradan yetki verin.</p>
-      <div className="mt-4 flex gap-2">
-        <Input placeholder="E-posta" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <Select value={role} onValueChange={(v) => setRole(v as "admin" | "reception")}><SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
-          <SelectContent><SelectItem value="reception">Resepsiyon</SelectItem><SelectItem value="admin">Yönetici</SelectItem></SelectContent></Select>
-        <Button onClick={add}>Yetki ver</Button>
+      <h2 className="font-semibold">Onay bekleyen kullanıcılar</h2>
+      <p className="text-sm text-muted-foreground">Kayıt olan kişiler siz onaylayana kadar panelde işlem yapamaz.</p>
+      <div className="mt-3 divide-y">
+        {data?.pending.map((u) => (
+          <div key={u.user_id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+            <span>{u.email} {!u.confirmed && <span className="text-xs text-warning">· e-posta onaylanmadı</span>}</span>
+            <div className="flex gap-2">
+              <Select value={roleFor[u.user_id] ?? "admin"} onValueChange={(v) => setRoleFor({ ...roleFor, [u.user_id]: v as "admin" | "reception" })}>
+                <SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
+                <SelectContent><SelectItem value="admin">Yönetici</SelectItem><SelectItem value="reception">Resepsiyon</SelectItem></SelectContent>
+              </Select>
+              <Button size="sm" disabled={!u.confirmed} onClick={() => approve(u.user_id)}>Onayla</Button>
+            </div>
+          </div>
+        ))}
+        {data?.pending.length === 0 && <p className="py-3 text-sm text-muted-foreground">Bekleyen kullanıcı yok.</p>}
       </div>
-      <div className="mt-4 divide-y">
-        {data.map((s) => (
+      <h2 className="mt-6 font-semibold">Panel kullanıcıları</h2>
+      <div className="mt-3 divide-y">
+        {data?.staff.map((s) => (
           <div key={s.id} className="flex items-center justify-between py-2 text-sm">
-            <span>{s.email} <span className="text-muted-foreground">· {s.role === "admin" ? "Yönetici" : "Resepsiyon"}</span></span>
-            <Button size="icon" variant="ghost" onClick={() => remove(s.id)}><Trash2 className="h-4 w-4" /></Button>
+            <span>{s.email} <span className="text-muted-foreground">· {ROLE_LABEL[s.role] ?? s.role}</span></span>
+            {s.role !== "superadmin" && <Button size="icon" variant="ghost" onClick={() => remove(s.id)}><Trash2 className="h-4 w-4" /></Button>}
           </div>
         ))}
       </div>
