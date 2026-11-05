@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Cross } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { HOSPITAL_NAME } from "@/lib/hospital";
 
 export function PublicHeader() {
@@ -26,6 +27,7 @@ export function PublicHeader() {
           <Button asChild variant="ghost" size="sm" className="hidden md:inline-flex"><Link to="/doktorlar">Doktorlarımız</Link></Button>
           <Button asChild variant="ghost" size="sm"><Link to="/randevu-sorgula">Randevu Sorgula</Link></Button>
           <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">{signedIn ? <Link to="/panel">Panele Git</Link> : <Link to="/auth">Personel Girişi</Link>}</Button>
+          <ThemeToggle />
           <Button asChild size="sm"><Link to="/randevu">Randevu Al</Link></Button>
         </nav>
       </div>
