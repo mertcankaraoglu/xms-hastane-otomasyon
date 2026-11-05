@@ -17,6 +17,8 @@ import { Route as RandevuSorgulaRouteImport } from './routes/randevu-sorgula'
 import { Route as AuthenticatedPanelIndexRouteImport } from './routes/_authenticated/panel.index'
 import { Route as AuthenticatedPanelRandevularRouteImport } from './routes/_authenticated/panel.randevular'
 import { Route as AuthenticatedPanelTakvimRouteImport } from './routes/_authenticated/panel.takvim'
+import { Route as AuthenticatedPanelHastalarIndexRouteImport } from './routes/_authenticated/panel.hastalar.index'
+import { Route as AuthenticatedPanelHastalarIdRouteImport } from './routes/_authenticated/panel.hastalar.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -59,6 +61,18 @@ const AuthenticatedPanelTakvimRoute =
     path: '/panel/takvim',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPanelHastalarIndexRoute =
+  AuthenticatedPanelHastalarIndexRouteImport.update({
+    id: '/panel/hastalar/',
+    path: '/panel/hastalar/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPanelHastalarIdRoute =
+  AuthenticatedPanelHastalarIdRouteImport.update({
+    id: '/panel/hastalar/$id',
+    path: '/panel/hastalar/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -68,6 +82,8 @@ export interface FileRoutesByFullPath {
   '/panel/randevular': typeof AuthenticatedPanelRandevularRoute
   '/panel/takvim': typeof AuthenticatedPanelTakvimRoute
   '/panel/': typeof AuthenticatedPanelIndexRoute
+  '/panel/hastalar/$id': typeof AuthenticatedPanelHastalarIdRoute
+  '/panel/hastalar/': typeof AuthenticatedPanelHastalarIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -77,6 +93,8 @@ export interface FileRoutesByTo {
   '/panel/randevular': typeof AuthenticatedPanelRandevularRoute
   '/panel/takvim': typeof AuthenticatedPanelTakvimRoute
   '/panel': typeof AuthenticatedPanelIndexRoute
+  '/panel/hastalar/$id': typeof AuthenticatedPanelHastalarIdRoute
+  '/panel/hastalar': typeof AuthenticatedPanelHastalarIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -88,6 +106,8 @@ export interface FileRoutesById {
   '/_authenticated/panel/randevular': typeof AuthenticatedPanelRandevularRoute
   '/_authenticated/panel/takvim': typeof AuthenticatedPanelTakvimRoute
   '/_authenticated/panel/': typeof AuthenticatedPanelIndexRoute
+  '/_authenticated/panel/hastalar/$id': typeof AuthenticatedPanelHastalarIdRoute
+  '/_authenticated/panel/hastalar/': typeof AuthenticatedPanelHastalarIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -99,6 +119,8 @@ export interface FileRouteTypes {
     | '/panel/randevular'
     | '/panel/takvim'
     | '/panel/'
+    | '/panel/hastalar/$id'
+    | '/panel/hastalar/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -108,6 +130,8 @@ export interface FileRouteTypes {
     | '/panel/randevular'
     | '/panel/takvim'
     | '/panel'
+    | '/panel/hastalar/$id'
+    | '/panel/hastalar'
   id:
     | '__root__'
     | '/'
@@ -118,6 +142,8 @@ export interface FileRouteTypes {
     | '/_authenticated/panel/randevular'
     | '/_authenticated/panel/takvim'
     | '/_authenticated/panel/'
+    | '/_authenticated/panel/hastalar/$id'
+    | '/_authenticated/panel/hastalar/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -186,6 +212,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPanelTakvimRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/panel/hastalar/': {
+      id: '/_authenticated/panel/hastalar/'
+      path: '/panel/hastalar'
+      fullPath: '/panel/hastalar/'
+      preLoaderRoute: typeof AuthenticatedPanelHastalarIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/panel/hastalar/$id': {
+      id: '/_authenticated/panel/hastalar/$id'
+      path: '/panel/hastalar/$id'
+      fullPath: '/panel/hastalar/$id'
+      preLoaderRoute: typeof AuthenticatedPanelHastalarIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -193,12 +233,16 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPanelRandevularRoute: typeof AuthenticatedPanelRandevularRoute
   AuthenticatedPanelTakvimRoute: typeof AuthenticatedPanelTakvimRoute
   AuthenticatedPanelIndexRoute: typeof AuthenticatedPanelIndexRoute
+  AuthenticatedPanelHastalarIdRoute: typeof AuthenticatedPanelHastalarIdRoute
+  AuthenticatedPanelHastalarIndexRoute: typeof AuthenticatedPanelHastalarIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPanelRandevularRoute: AuthenticatedPanelRandevularRoute,
   AuthenticatedPanelTakvimRoute: AuthenticatedPanelTakvimRoute,
   AuthenticatedPanelIndexRoute: AuthenticatedPanelIndexRoute,
+  AuthenticatedPanelHastalarIdRoute: AuthenticatedPanelHastalarIdRoute,
+  AuthenticatedPanelHastalarIndexRoute: AuthenticatedPanelHastalarIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
