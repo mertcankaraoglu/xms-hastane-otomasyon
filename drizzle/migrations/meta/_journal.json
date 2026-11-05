@@ -8,6 +8,13 @@
       "when": 1793891662831,
       "tag": "0000_hospital_core",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793893006813,
+      "tag": "0001_cancel_on_closed_day",
+      "breakpoints": true
     }
   ]
 }

@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       appointments: {
         Row: {
+          cancel_reason: string | null
           code: string
           complaint: string | null
           created_at: string
@@ -28,6 +29,7 @@ export type Database = {
           status: Database["public"]["Enums"]["appointment_status"]
         }
         Insert: {
+          cancel_reason?: string | null
           code?: string
           complaint?: string | null
           created_at?: string
@@ -40,6 +42,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["appointment_status"]
         }
         Update: {
+          cancel_reason?: string | null
           code?: string
           complaint?: string | null
           created_at?: string
