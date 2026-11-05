@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { CalendarCheck, Clock, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PublicHeader } from "@/components/PublicHeader";
+import { PublicFooter } from "@/components/PublicFooter";
 import { supabase } from "@/integrations/supabase/client";
 import { iconFor, HOSPITAL_NAME } from "@/lib/hospital";
 import hero from "@/assets/hospital-hero.jpg";
@@ -70,7 +71,7 @@ function Index() {
           })}
         </div>
       </section>
-      <footer className="border-t py-8 text-center text-sm text-muted-foreground">© {new Date().getFullYear()} {HOSPITAL_NAME}</footer>
+      <PublicFooter />
     </div>
   );
 }
