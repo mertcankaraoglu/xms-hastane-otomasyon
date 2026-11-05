@@ -3,7 +3,7 @@ import { useLocation } from "@tanstack/react-router";
 import ReactMarkdown from "react-markdown";
 import { Send, X, RotateCcw } from "lucide-react";
 import nurse from "@/assets/medi-ai-nurse.png";
-import { chatHistory, chatSend, chatStart } from "@/lib/medi-ai.functions";
+import { chatHistory, chatStart } from "@/lib/medi-ai.functions";
 
 type Msg = { role: "user" | "assistant"; content: string };
 const KEY = "medi-ai-conv";
