@@ -29,8 +29,8 @@ export const Route = createFileRoute("/api/chat")({
         const enc = new TextEncoder();
         const stream = new ReadableStream<Uint8Array>({
           async start(controller) {
-            const reply = await runAgent(history, (t) => controller.enqueue(enc.encode(t)));
-            const { error: e2 } = await sb.rpc("chat_append", { _id: data.id, _token: data.token, _role: "assistant", _content: reply.slice(0, 8000) });
+            const { text: reply, sources } = await runAgent(history, (t) => controller.enqueue(enc.encode(t)));
+            const { error: e2 } = await sb.rpc("chat_append_assistant", { _id: data.id, _token: data.token, _content: reply.slice(0, 8000), _sources: sources as any });
             if (e2) console.error("assistant message save failed", e2.message);
             controller.close();
           },
