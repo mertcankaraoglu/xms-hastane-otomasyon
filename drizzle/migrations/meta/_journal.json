@@ -15,6 +15,13 @@
       "when": 1793893006813,
       "tag": "0001_cancel_on_closed_day",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793893098764,
+      "tag": "0002_add_superadmin_role",
+      "breakpoints": true
     }
   ]
 }
