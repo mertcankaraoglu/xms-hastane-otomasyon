@@ -1,6 +1,7 @@
 import { createFileRoute, redirect, Outlet, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, ClipboardList, Cross, LayoutDashboard, LogOut, Settings, Stethoscope, Users, Building2 } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { HOSPITAL_NAME } from "@/lib/hospital";
@@ -74,7 +75,7 @@ function Layout() {
         <div className="border-t border-sidebar-border p-4 text-xs">
           <p className="truncate">{user.email}</p>
           <p className="text-sidebar-primary">{isSuper ? "Süper yönetici" : roles.includes("admin") ? "Yönetici" : "Resepsiyon"}</p>
-          <button onClick={signOut} className="mt-3 flex items-center gap-2 hover:text-sidebar-accent-foreground"><LogOut className="h-3.5 w-3.5" /> Çıkış</button>
+          <div className="mt-3 flex items-center justify-between"><button onClick={signOut} className="flex items-center gap-2 hover:text-sidebar-accent-foreground"><LogOut className="h-3.5 w-3.5" /> Çıkış</button><ThemeToggle className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" /></div>
         </div>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
