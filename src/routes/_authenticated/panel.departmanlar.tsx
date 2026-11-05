@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowUp, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,8 @@ export const Route = createFileRoute("/_authenticated/panel/departmanlar")({
   component: DeptPage,
 });
 
-type Form = { id?: string; name: string; description: string; icon: string; sort_order: number };
+type Faq = { question: string; answer: string };
+type Form = { id?: string; name: string; description: string; icon: string; sort_order: number; short_description: string; long_description: string; services: string; cover_url: string; faqs: Faq[] };
 
 function DeptPage() {
   const qc = useQueryClient();
@@ -28,9 +29,16 @@ function DeptPage() {
 
   async function save() {
     if (!form || form.name.trim().length < 2) { toast.error("Ad girin"); return; }
-    const payload = { name: form.name.trim(), description: form.description, icon: form.icon, sort_order: form.sort_order };
-    const { error } = form.id ? await supabase.from("departments").update(payload).eq("id", form.id) : await supabase.from("departments").insert(payload);
-    if (error) { toast.error(error.message); return; }
+    const payload = { name: form.name.trim(), description: form.description, icon: form.icon, sort_order: form.sort_order,
+      short_description: form.short_description || null, long_description: form.long_description || null,
+      services: form.services.split("\n").map((x) => x.trim()).filter(Boolean), cover_url: form.cover_url.trim() || null };
+    const res = form.id ? await supabase.from("departments").update(payload).eq("id", form.id).select("id").single() : await supabase.from("departments").insert(payload).select("id").single();
+    if (res.error) { toast.error(res.error.message); return; }
+    const deptId = res.data.id;
+    await supabase.from("department_faqs").delete().eq("department_id", deptId);
+    const faqs = form.faqs.filter((f) => f.question.trim() && f.answer.trim()).map((f, i) => ({ department_id: deptId, question: f.question.trim(), answer: f.answer.trim(), sort_order: i + 1 }));
+    if (faqs.length) { const { error } = await supabase.from("department_faqs").insert(faqs); if (error) { toast.error(error.message); return; } }
+    toast.success("Kaydedildi");
     setForm(null); qc.invalidateQueries({ queryKey: ["departments"] });
   }
   async function remove(id: string) {
@@ -44,7 +52,7 @@ function DeptPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Departmanlar</h1>
-        <Button onClick={() => setForm({ name: "", description: "", icon: "stethoscope", sort_order: depts.length + 1 })}><Plus className="h-4 w-4" /> Yeni</Button>
+        <Button onClick={() => setForm({ name: "", description: "", icon: "stethoscope", sort_order: depts.length + 1, short_description: "", long_description: "", services: "", cover_url: "", faqs: [] })}><Plus className="h-4 w-4" /> Yeni</Button>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {depts.map((d) => {
@@ -67,12 +75,30 @@ function DeptPage() {
         })}
       </div>
       <Dialog open={!!form} onOpenChange={(o) => !o && setForm(null)}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
           <DialogHeader><DialogTitle>{form?.id ? "Departmanı düzenle" : "Yeni departman"}</DialogTitle></DialogHeader>
           {form && (
             <div className="grid gap-3">
               <div className="grid gap-1.5"><Label>Ad</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-              <div className="grid gap-1.5"><Label>Açıklama</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+              <div className="grid gap-1.5"><Label>Panel açıklaması</Label><Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+              <div className="grid gap-1.5"><Label>Kısa tanıtım (sitede başlık altında)</Label><Textarea rows={2} value={form.short_description} onChange={(e) => setForm({ ...form, short_description: e.target.value })} /></div>
+              <div className="grid gap-1.5"><Label>Hakkında (paragrafları boş satırla ayırın)</Label><Textarea rows={6} value={form.long_description} onChange={(e) => setForm({ ...form, long_description: e.target.value })} /></div>
+              <div className="grid gap-1.5"><Label>Tedavi ve hizmetler (her satıra bir tane)</Label><Textarea rows={5} value={form.services} onChange={(e) => setForm({ ...form, services: e.target.value })} /></div>
+              <div className="grid gap-1.5"><Label>Kapak görseli bağlantısı (https://...)</Label><Input value={form.cover_url} onChange={(e) => setForm({ ...form, cover_url: e.target.value })} /></div>
+              <div className="grid gap-2">
+                <div className="flex items-center justify-between"><Label>Sıkça sorulan sorular</Label>
+                  <Button type="button" size="sm" variant="outline" onClick={() => setForm({ ...form, faqs: [...form.faqs, { question: "", answer: "" }] })}><Plus className="h-4 w-4" /> Soru ekle</Button></div>
+                {form.faqs.map((f, i) => (
+                  <div key={i} className="grid gap-2 rounded-md border p-3">
+                    <div className="flex gap-2">
+                      <Input placeholder="Soru" value={f.question} onChange={(e) => setForm({ ...form, faqs: form.faqs.map((x, j) => j === i ? { ...x, question: e.target.value } : x) })} />
+                      <Button type="button" size="icon" variant="ghost" disabled={i === 0} onClick={() => { const a = [...form.faqs]; [a[i - 1], a[i]] = [a[i]!, a[i - 1]!]; setForm({ ...form, faqs: a }); }}><ArrowUp className="h-4 w-4" /></Button>
+                      <Button type="button" size="icon" variant="ghost" onClick={() => setForm({ ...form, faqs: form.faqs.filter((_, j) => j !== i) })}><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                    <Textarea rows={2} placeholder="Cevap" value={f.answer} onChange={(e) => setForm({ ...form, faqs: form.faqs.map((x, j) => j === i ? { ...x, answer: e.target.value } : x) })} />
+                  </div>
+                ))}
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="grid gap-1.5"><Label>İkon</Label>
                   <Select value={form.icon} onValueChange={(v) => setForm({ ...form, icon: v })}><SelectTrigger><SelectValue /></SelectTrigger>
