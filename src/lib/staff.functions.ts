@@ -28,7 +28,11 @@ export const grantRole = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertSuperadmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("user_roles").upsert({ user_id: data.userId, role: data.role }, { onConflict: "user_id,role" });
+    const { data: existing } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", data.userId).maybeSingle();
+    if (existing?.role === "superadmin") return { ok: false as const, error: "Süper yönetici yetkisi değiştirilemez" };
+    const { data: u } = await supabaseAdmin.auth.admin.getUserById(data.userId);
+    if (!u?.user?.email_confirmed_at) return { ok: false as const, error: "Kullanıcı e-postasını onaylamamış" };
+    const { error } = await supabaseAdmin.from("user_roles").upsert({ user_id: data.userId, role: data.role }, { onConflict: "user_id" });
     if (error) return { ok: false as const, error: error.message };
     return { ok: true as const };
   });
