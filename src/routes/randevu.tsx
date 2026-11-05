@@ -82,7 +82,7 @@ function BookingPage() {
 
   async function submit() {
     const parsed = patientSchema.safeParse(form);
-    if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
+    if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? "Hatalı bilgi"); return; }
     setSubmitting(true);
     const v = parsed.data;
     const { data, error } = await supabase.rpc("book_appointment", {

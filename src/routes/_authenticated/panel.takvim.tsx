@@ -33,8 +33,8 @@ function CalendarPage() {
   const [dialog, setDialog] = useState<{ open: boolean; appt?: ApptRow | null; date?: string }>({ open: false });
 
   const days = view === "day" ? [anchor] : Array.from({ length: 7 }, (_, i) => addDays(mondayOf(anchor), i));
-  const from = dayBoundsUtc(days[0])[0];
-  const to = dayBoundsUtc(days[days.length - 1])[1];
+  const from = dayBoundsUtc(days[0]!)[0];
+  const to = dayBoundsUtc(days[days.length - 1]!)[1];
   const { data: appts = [] } = useQuery(apptsInRange(from, to));
   const { data: depts = [] } = useQuery(departmentsQuery);
   const { data: doctors = [] } = useQuery(doctorsQuery);
@@ -45,7 +45,7 @@ function CalendarPage() {
   const step = view === "day" ? 1 : 7;
   const label = view === "day"
     ? new Date(anchor + "T12:00:00Z").toLocaleDateString("tr-TR", { dateStyle: "full" })
-    : `${new Date(days[0] + "T12:00:00Z").toLocaleDateString("tr-TR", { day: "numeric", month: "short" })} – ${new Date(days[6] + "T12:00:00Z").toLocaleDateString("tr-TR", { day: "numeric", month: "short", year: "numeric" })}`;
+    : `${new Date(days[0]! + "T12:00:00Z").toLocaleDateString("tr-TR", { day: "numeric", month: "short" })} – ${new Date(days[6]! + "T12:00:00Z").toLocaleDateString("tr-TR", { day: "numeric", month: "short", year: "numeric" })}`;
 
   return (
     <div className="space-y-4">
