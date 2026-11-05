@@ -120,8 +120,8 @@ export function MediAIWidget() {
                 </div>
               </div>
             ))}
-            {!busy && msgs.length > 0 && msgs[msgs.length - 1].role === "assistant" && (() => {
-              const chips = parse(msgs[msgs.length - 1].content).chips;
+            {!busy && msgs.at(-1)?.role === "assistant" && (() => {
+              const chips = parse(msgs.at(-1)?.content ?? "").chips;
               return chips.length > 0 && (
                 <div className="flex flex-wrap gap-2 pl-9">
                   {chips.map((s) => <button key={s} onClick={() => send(s)} className="rounded-full border border-primary/40 bg-primary-soft px-3 py-1.5 text-xs font-medium text-primary hover:border-primary hover:bg-primary hover:text-primary-foreground">{s}</button>)}
