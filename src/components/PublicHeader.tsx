@@ -2,7 +2,6 @@ import logo from "@/assets/logo-emblem.png";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Cross } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { HOSPITAL_NAME } from "@/lib/hospital";

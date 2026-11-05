@@ -1,6 +1,6 @@
 import logo from "@/assets/logo-emblem.png";
 import { Link } from "@tanstack/react-router";
-import { Clock, Cross, Mail, MapPin, Phone } from "lucide-react";
+import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import { HOSPITAL_NAME } from "@/lib/hospital";
 
 export function PublicFooter() {

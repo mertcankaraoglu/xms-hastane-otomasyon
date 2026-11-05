@@ -1,7 +1,7 @@
 import logo from "@/assets/logo-emblem.png";
 import { createFileRoute, redirect, Outlet, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { CalendarDays, ClipboardList, Cross, LayoutDashboard, LogOut, Settings, Stethoscope, Users, Building2 } from "lucide-react";
+import { CalendarDays, ClipboardList, LayoutDashboard, LogOut, Settings, Stethoscope, Users, Building2 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
