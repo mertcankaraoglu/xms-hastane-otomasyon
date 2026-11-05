@@ -30,7 +30,7 @@ use the editor.
 <!-- LOVABLE:END -->
 
 ## Project rules
-- Staff panel lives under `src/routes/_authenticated/panel.*`; access = any row in `user_roles` (admin/reception), checked by `is_staff()` in RLS — the UI gate is only UX.
+- Staff panel lives under `src/routes/_authenticated/panel.*`; access = any row in `user_roles` (superadmin/admin/reception), checked by `is_staff()` in RLS. Users with no role see "awaiting approval". Settings (closed days, user approval) is superadmin-only, enforced in RLS and server functions.
 - Anonymous patients never touch tables directly; public booking/lookup/cancel go through SECURITY DEFINER RPCs (`book_appointment`, `lookup_appointment`, `cancel_appointment_public`, `get_booked_slots`) so patient data stays private.
 - Double booking is prevented by a partial unique index on (doctor_id, starts_at) excluding cancelled rows — keep it as the source of truth.
 - All times are Europe/Istanbul (fixed UTC+3); slot math lives in `src/lib/slots.ts`.

@@ -38,12 +38,15 @@ function Layout() {
     navigate({ to: "/auth", replace: true });
   }
 
+  const isSuper = roles.includes("superadmin");
+  const items = nav.filter((n) => n.to !== "/panel/ayarlar" || isSuper);
   if (roles.length === 0) {
     return (
       <div className="grid min-h-screen place-items-center px-4 text-center">
         <div>
-          <h1 className="text-2xl font-bold">Yetkiniz yok</h1>
-          <p className="mt-2 text-muted-foreground">{user.email} hesabına henüz panel yetkisi verilmemiş. Yöneticinizden yetki isteyin.</p>
+          <h1 className="text-2xl font-bold">Admin onayı bekleniyor</h1>
+          <p className="mt-2 text-muted-foreground">{user.email} hesabınız oluşturuldu. Süper yönetici onayladıktan sonra panele erişebilirsiniz.</p>
+          <Button className="mt-6 mr-2" onClick={() => window.location.reload()}>Tekrar kontrol et</Button>
           <Button className="mt-6" variant="outline" onClick={signOut}>Çıkış yap</Button>
         </div>
       </div>
@@ -58,7 +61,7 @@ function Layout() {
           {HOSPITAL_NAME}
         </Link>
         <nav className="flex flex-1 flex-col gap-1 px-3">
-          {nav.map((n) => (
+          {items.map((n) => (
             <Link key={n.to} to={n.to} activeOptions={{ exact: n.to === "/panel" }}
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition hover:bg-sidebar-accent"
               activeProps={{ className: "bg-sidebar-accent text-sidebar-accent-foreground font-medium" }}>
@@ -68,13 +71,13 @@ function Layout() {
         </nav>
         <div className="border-t border-sidebar-border p-4 text-xs">
           <p className="truncate">{user.email}</p>
-          <p className="text-sidebar-primary">{roles.includes("admin") ? "Yönetici" : "Resepsiyon"}</p>
+          <p className="text-sidebar-primary">{isSuper ? "Süper yönetici" : roles.includes("admin") ? "Yönetici" : "Resepsiyon"}</p>
           <button onClick={signOut} className="mt-3 flex items-center gap-2 hover:text-sidebar-accent-foreground"><LogOut className="h-3.5 w-3.5" /> Çıkış</button>
         </div>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex gap-1 overflow-x-auto border-b bg-sidebar p-2 md:hidden">
-          {nav.map((n) => (
+          {items.map((n) => (
             <Link key={n.to} to={n.to} activeOptions={{ exact: n.to === "/panel" }} className="whitespace-nowrap rounded-md px-3 py-1.5 text-xs text-sidebar-foreground" activeProps={{ className: "bg-sidebar-accent text-sidebar-accent-foreground" }}>{n.label}</Link>
           ))}
         </div>
