@@ -1,3 +1,4 @@
+import { MediAIWidget } from "@/components/MediAIWidget";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -115,6 +116,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
+      <MediAIWidget />
       <Toaster richColors position="top-right" />
     </QueryClientProvider>
   );
