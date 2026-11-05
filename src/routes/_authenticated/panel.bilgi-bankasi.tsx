@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { FileUp, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { reindexKb, saveKbArticle } from "@/lib/medi-ai.functions";
+import { importKbDocument, reindexKb, saveKbArticle } from "@/lib/medi-ai.functions";
+import { extractText } from "@/lib/doc-extract";
 
 export const Route = createFileRoute("/_authenticated/panel/bilgi-bankasi")({
   head: () => ({ meta: [{ title: "Bilgi Bankası — Yönetim Paneli" }, { name: "description", content: "Medi AI bilgi bankası" }, { property: "og:title", content: "Bilgi Bankası" }, { property: "og:description", content: "Medi AI bilgi bankası" }] }),
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/panel/bilgi-bankasi")({
 
 type Form = { id: string | null; title: string; category: string; content: string };
 const kbQuery = { queryKey: ["kb"], queryFn: async () => {
-  const { data, error } = await supabase.from("kb_articles").select("id, title, category, content, sort_order, embedding").order("sort_order").order("created_at");
+  const { data, error } = await supabase.from("kb_articles").select("id, title, category, content, sort_order, embedding, source_name").order("sort_order").order("created_at");
   if (error) throw error;
   return (data ?? []).map((r) => ({ ...r, indexed: !!r.embedding, embedding: undefined }));
 } };
@@ -32,6 +33,27 @@ function KbPage() {
   const [reindexing, setReindexing] = useState(false);
   const save = useServerFn(saveKbArticle);
   const reindex = useServerFn(reindexKb);
+  const importDoc = useServerFn(importKbDocument);
+  const [upload, setUpload] = useState<{ file: File | null; category: string } | null>(null);
+  const [importing, setImporting] = useState(false);
+
+  async function onImport() {
+    if (!upload?.file) return;
+    setImporting(true);
+    try {
+      const text = (await extractText(upload.file)).trim();
+      if (text.length < 20) throw new Error("Dokümandan metin çıkarılamadı (taranmış PDF olabilir)");
+      const r = await importDoc({ data: { name: upload.file.name, category: upload.category || "Doküman", text: text.slice(0, 400_000) } });
+      toast.success(`${upload.file.name}: ${r.count} parça eklendi ve indekslendi`);
+      setUpload(null); qc.invalidateQueries({ queryKey: ["kb"] });
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Hata"); }
+    finally { setImporting(false); }
+  }
+  async function onDeleteDoc(name: string) {
+    if (!confirm(`"${name}" dokümanının tüm parçaları silinsin mi?`)) return;
+    const { error } = await supabase.from("kb_articles").delete().eq("source_name", name);
+    if (error) toast.error(error.message); else qc.invalidateQueries({ queryKey: ["kb"] });
+  }
 
   async function onSave() {
     if (!form) return;
@@ -53,6 +75,8 @@ function KbPage() {
   }
 
   const missing = rows.filter((r) => !r.indexed).length;
+  const manual = rows.filter((r) => !r.source_name);
+  const docs = Object.entries(rows.filter((r) => r.source_name).reduce<Record<string, typeof rows>>((acc, r) => { (acc[r.source_name!] ??= []).push(r); return acc; }, {}));
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -62,11 +86,31 @@ function KbPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={onReindex} disabled={reindexing}><RefreshCw className={`h-4 w-4 ${reindexing ? "animate-spin" : ""}`} /> Yeniden indeksle{missing ? ` (${missing})` : ""}</Button>
+          <Button variant="outline" onClick={() => setUpload({ file: null, category: "Doküman" })}><FileUp className="h-4 w-4" /> Doküman yükle</Button>
           <Button onClick={() => setForm({ id: null, title: "", category: "Genel", content: "" })}><Plus className="h-4 w-4" /> Yeni madde</Button>
         </div>
       </div>
+      {docs.length > 0 && (
+        <div className="space-y-2">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Yüklenen dokümanlar</h2>
+          {docs.map(([name, parts]) => (
+            <details key={name} className="rounded-xl border bg-card p-4">
+              <summary className="flex cursor-pointer items-center justify-between gap-3">
+                <span className="font-semibold"><FileUp className="mr-2 inline h-4 w-4 text-primary" />{name}
+                  <span className="ml-2 rounded-full bg-primary-soft px-2 py-0.5 text-xs font-medium text-primary">{parts[0]?.category}</span>
+                  <span className="ml-2 text-xs text-muted-foreground">{parts.length} parça</span></span>
+                <Button size="icon" variant="ghost" onClick={(e) => { e.preventDefault(); onDeleteDoc(name); }}><Trash2 className="h-4 w-4" /></Button>
+              </summary>
+              <div className="mt-3 space-y-2">
+                {parts.map((p) => <p key={p.id} className="line-clamp-2 border-l-2 pl-3 text-sm text-muted-foreground">{p.content}</p>)}
+              </div>
+            </details>
+          ))}
+          <h2 className="pt-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Maddeler</h2>
+        </div>
+      )}
       <div className="grid gap-3">
-        {rows.map((r) => (
+        {manual.map((r) => (
           <div key={r.id} className="rounded-xl border bg-card p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -82,6 +126,19 @@ function KbPage() {
           </div>
         ))}
       </div>
+      <Dialog open={!!upload} onOpenChange={(o) => !o && !importing && setUpload(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Doküman yükle</DialogTitle></DialogHeader>
+          {upload && (
+            <div className="grid gap-4">
+              <p className="text-sm text-muted-foreground">PDF, DOCX, TXT veya MD yükleyin. Metin parçalara bölünür ve Medi AI bu parçalardan yanıt verir. Aynı isimli doküman tekrar yüklenirse eskisinin yerine geçer.</p>
+              <div><Label>Dosya</Label><Input type="file" accept=".pdf,.docx,.txt,.md" onChange={(e) => setUpload({ ...upload, file: e.target.files?.[0] ?? null })} /></div>
+              <div><Label>Kategori</Label><Input value={upload.category} onChange={(e) => setUpload({ ...upload, category: e.target.value })} /></div>
+            </div>
+          )}
+          <DialogFooter><Button onClick={onImport} disabled={importing || !upload?.file}>{importing ? "İşleniyor…" : "Yükle ve indeksle"}</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Dialog open={!!form} onOpenChange={(o) => !o && setForm(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader><DialogTitle>{form?.id ? "Maddeyi düzenle" : "Yeni madde"}</DialogTitle></DialogHeader>
