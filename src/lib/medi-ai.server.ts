@@ -1,6 +1,6 @@
 // Server-only: Medi AI agent (RAG + appointment tools).
 import { createClient } from "@supabase/supabase-js";
-import { generateEmbeddings, generateResponse, GatewayError } from "@lovable.dev/ai-gateway";
+import { generateEmbeddings, generateResponse, streamResponse, GatewayError } from "@lovable.dev/ai-gateway";
 import type { Database } from "@/integrations/supabase/types";
 import { generateSlots, dayBoundsUtc, istanbulYmd, type WorkingHours } from "@/lib/slots";
 
@@ -126,18 +126,33 @@ Kurallar:
   - Öneriler kısa olsun (en fazla ~6 kelime), "|" karakteri içermesin. Ad, TC, telefon gibi kişisel bilgileri asla öneri olarak yazma.`;
 }
 
-export async function runAgent(history: { role: "user" | "assistant"; content: string }[]): Promise<string> {
+export async function runAgent(
+  history: { role: "user" | "assistant"; content: string }[],
+  onDelta: (t: string) => void = () => {},
+): Promise<string> {
   const sb = pubClient();
   const input: any[] = history.map((m) => ({ role: m.role, content: m.content }));
+  let full = "";
+  const emit = (t: string) => { full += t; onDelta(t); };
   try {
     for (let step = 0; step < 8; step++) {
-      const res = await generateResponse({ model: "openai/gpt-6-astra", instructions: instructions(), input, tools: TOOLS });
-      const calls = res.output.filter((o: any) => o.type === "function_call") as any[];
-      if (calls.length === 0) {
-        const text = (res.output as any[]).filter((o) => o.type === "message").flatMap((o) => o.content ?? []).filter((c: any) => c.type === "output_text").map((c: any) => c.text).join("\n");
-        return text.trim() || "Üzgünüm, şu an yanıt veremedim.";
+      const stream = await streamResponse({ model: "openai/gpt-6-astra", instructions: instructions(), input, tools: TOOLS });
+      let output: any[] = [];
+      let stepText = "";
+      for await (const ev of stream as AsyncIterable<any>) {
+        if (ev?.type === "response.output_text.delta" && typeof ev.delta === "string") {
+          if (!stepText && full) emit("\n\n");
+          stepText += ev.delta; emit(ev.delta);
+        } else if (ev?.type === "response.completed") {
+          output = ev.response?.output ?? [];
+        }
       }
-      input.push(...res.output);
+      const calls = output.filter((o) => o.type === "function_call");
+      if (calls.length === 0) {
+        if (!full.trim()) emit("Üzgünüm, şu an yanıt veremedim.");
+        return full.trim();
+      }
+      input.push(...output);
       for (const c of calls) {
         let args: Record<string, any> = {};
         try { args = JSON.parse(c.arguments || "{}"); } catch { /* empty */ }
@@ -145,13 +160,16 @@ export async function runAgent(history: { role: "user" | "assistant"; content: s
         input.push({ type: "function_call_output", call_id: c.call_id, output: JSON.stringify(out) });
       }
     }
-    return "İsteğinizi tamamlayamadım, lütfen tekrar dener misiniz?";
+    emit("İsteğinizi tamamlayamadım, lütfen tekrar dener misiniz?");
+    return full.trim();
   } catch (e) {
+    let msg = "Bir sorun oluştu, lütfen tekrar deneyin.";
     if (e instanceof GatewayError) {
       console.error("Medi AI gateway error", e.code, e.ids);
-      if (e.httpStatus === 429) return "Şu an çok yoğunum, lütfen birkaç saniye sonra tekrar deneyin.";
-      if (e.httpStatus === 402) return "Asistan geçici olarak hizmet dışı. Lütfen 0216 000 00 00'ı arayın.";
-    }
-    throw e;
+      if (e.httpStatus === 429) msg = "Şu an çok yoğunum, lütfen birkaç saniye sonra tekrar deneyin.";
+      if (e.httpStatus === 402) msg = "Asistan geçici olarak hizmet dışı. Lütfen 0216 000 00 00'ı arayın.";
+    } else console.error("Medi AI error", e);
+    emit((full ? "\n\n" : "") + msg);
+    return full.trim();
   }
 }
