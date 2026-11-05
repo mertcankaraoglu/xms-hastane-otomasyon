@@ -56,7 +56,7 @@ function AuthPage() {
           <button type="button" className="text-sm text-muted-foreground hover:text-foreground" onClick={() => setMode(mode === "in" ? "up" : "in")}>
             {mode === "in" ? "Hesabınız yok mu? Kayıt olun" : "Zaten hesabınız var mı? Giriş yapın"}
           </button>
-          {mode === "up" && <p className="text-xs text-muted-foreground">İlk kayıt olan kişi otomatik olarak yönetici olur. Diğer hesaplar yönetici tarafından yetkilendirilmelidir.</p>}
+          {mode === "up" && <p className="text-xs text-muted-foreground">E-posta onayından sonra hesabınız süper yönetici onayına düşer.</p>}
         </form>
       </div>
     </div>
