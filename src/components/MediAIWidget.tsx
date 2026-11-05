@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "@tanstack/react-router";
 import ReactMarkdown from "react-markdown";
-import { Send, X, RotateCcw } from "lucide-react";
+import { Send, X, RotateCcw, Star } from "lucide-react";
 import nurse from "@/assets/medi-ai-nurse.png";
-import { chatHistory, chatStart } from "@/lib/medi-ai.functions";
+import { chatHistory, chatRate, chatStart } from "@/lib/medi-ai.functions";
 
 type Msg = { role: "user" | "assistant"; content: string };
 const KEY = "medi-ai-conv";
@@ -27,6 +27,16 @@ export function MediAIWidget() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [streaming, setStreaming] = useState(false);
+  const [rateOpen, setRateOpen] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [feedback, setFeedback] = useState("");
+  const [rated, setRated] = useState(false);
+
+  async function submitRating() {
+    if (!conv.current || !rating) return;
+    try { await chatRate({ data: { ...conv.current, rating, feedback: feedback.trim() || undefined } }); setRated(true); setRateOpen(false); }
+    catch { /* keep form open */ }
+  }
   const conv = useRef<{ id: string; token: string } | null>(null);
   const loaded = useRef(false);
   const endRef = useRef<HTMLDivElement>(null);
@@ -91,7 +101,7 @@ export function MediAIWidget() {
   }
 
   function reset() {
-    localStorage.removeItem(KEY); conv.current = null; setMsgs([]);
+    localStorage.removeItem(KEY); conv.current = null; setMsgs([]); setRated(false); setRating(0); setFeedback(""); setRateOpen(false);
   }
 
   if (pathname.startsWith("/panel") || pathname.startsWith("/auth")) return null;
@@ -120,6 +130,7 @@ export function MediAIWidget() {
               <p className="font-display font-semibold leading-tight">Medi AI</p>
               <p className="text-xs opacity-80">Medicare Hastanesi sanal asistanı</p>
             </div>
+            {msgs.length >= 2 && !rated && <button onClick={() => setRateOpen((v) => !v)} title="Sohbeti puanla" aria-label="Sohbeti puanla" className="rounded-full p-2 hover:bg-primary-foreground/15"><Star className="h-4 w-4" /></button>}
             <button onClick={reset} title="Yeni sohbet" aria-label="Yeni sohbet" className="rounded-full p-2 hover:bg-primary-foreground/15"><RotateCcw className="h-4 w-4" /></button>
             <button onClick={() => setOpen(false)} aria-label="Kapat" className="rounded-full p-2 hover:bg-primary-foreground/15"><X className="h-5 w-5" /></button>
           </header>
@@ -155,6 +166,27 @@ export function MediAIWidget() {
                 {SUGGESTIONS.map((s) => <button key={s} onClick={() => send(s)} className="rounded-full border bg-card px-3 py-1.5 text-xs font-medium hover:border-primary hover:text-primary">{s}</button>)}
               </div>
             )}
+            {!busy && msgs.length >= 4 && !rated && !rateOpen && (
+              <button onClick={() => setRateOpen(true)} className="mx-auto block text-xs text-muted-foreground underline-offset-2 hover:text-primary hover:underline">Bu sohbet faydalı oldu mu? Puanlayın</button>
+            )}
+            {rateOpen && !rated && (
+              <div className="rounded-2xl border bg-card p-3">
+                <p className="text-sm font-medium">Medi AI ile sohbetinizi puanlayın</p>
+                <div className="mt-2 flex gap-1">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <button key={i} onClick={() => setRating(i)} aria-label={`${i} yıldız`}>
+                      <Star className={`h-7 w-7 transition ${i <= rating ? "fill-primary text-primary" : "text-muted-foreground/40 hover:text-primary"}`} />
+                    </button>
+                  ))}
+                </div>
+                <textarea value={feedback} onChange={(e) => setFeedback(e.target.value)} maxLength={1000} rows={2} placeholder="Yorumunuz (isteğe bağlı)" className="mt-2 w-full resize-none rounded-lg border bg-background px-2 py-1.5 text-sm outline-none focus:border-primary" />
+                <div className="mt-2 flex justify-end gap-2">
+                  <button onClick={() => setRateOpen(false)} className="rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted">Vazgeç</button>
+                  <button onClick={submitRating} disabled={!rating} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground disabled:opacity-40">Gönder</button>
+                </div>
+              </div>
+            )}
+            {rated && <p className="text-center text-xs text-primary">Değerlendirmeniz için teşekkürler 🌸</p>}
             <div ref={endRef} />
           </div>
           <form onSubmit={(e) => { e.preventDefault(); send(input); }} className="border-t p-3">

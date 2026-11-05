@@ -32,8 +32,8 @@ export const chatSend = createServerFn({ method: "POST" })
     }
     const { data: rows } = await sb.rpc("chat_history", { _id: data.id, _token: data.token });
     const history = (rows ?? []).slice(-30).map((r) => ({ role: r.role as "user" | "assistant", content: r.content }));
-    const reply = await runAgent(history);
-    const { error: e2 } = await sb.rpc("chat_append", { _id: data.id, _token: data.token, _role: "assistant", _content: reply.slice(0, 8000) });
+    const { text: reply, sources } = await runAgent(history);
+    const { error: e2 } = await sb.rpc("chat_append_assistant", { _id: data.id, _token: data.token, _content: reply.slice(0, 8000), _sources: sources as any });
     if (e2) console.error("assistant message save failed", e2.message);
     return { reply };
   });
@@ -76,4 +76,56 @@ export const reindexKb = createServerFn({ method: "POST" })
       if (e) throw new Error(e.message);
     }
     return { count: list.length };
+  });
+
+export const chatRate = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => Conv.extend({ rating: z.number().int().min(1).max(5), feedback: z.string().max(1000).optional() }).parse(d))
+  .handler(async ({ data }) => {
+    const { pubClient } = await import("@/lib/medi-ai.server");
+    const { error } = await pubClient().rpc("chat_rate", { _id: data.id, _token: data.token, _rating: data.rating, _feedback: data.feedback ?? "" });
+    if (error) throw new Error("Puan kaydedilemedi");
+    return { ok: true };
+  });
+
+/** Splits document text into ~1200-char chunks on paragraph boundaries. */
+function chunkText(text: string, size = 1200): string[] {
+  const paras = text.replace(/\r/g, "").split(/\n\s*\n/).map((p) => p.replace(/[ \t]+/g, " ").trim()).filter(Boolean);
+  const out: string[] = [];
+  let cur = "";
+  for (const p of paras) {
+    if (p.length > size) {
+      if (cur) { out.push(cur); cur = ""; }
+      for (let i = 0; i < p.length; i += size) out.push(p.slice(i, i + size));
+      continue;
+    }
+    if ((cur + "\n\n" + p).length > size && cur) { out.push(cur); cur = p; } else cur = cur ? `${cur}\n\n${p}` : p;
+  }
+  if (cur) out.push(cur);
+  return out;
+}
+
+export const importKbDocument = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({
+    name: z.string().trim().min(1).max(200),
+    category: z.string().trim().min(1).max(60),
+    text: z.string().min(20).max(400_000),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.supabase, context.userId);
+    const chunks = chunkText(data.text).slice(0, 200);
+    if (chunks.length === 0) throw new Error("Dokümanda metin bulunamadı");
+    const { embed } = await import("@/lib/medi-ai.server");
+    const base = data.name.replace(/\.[a-z0-9]+$/i, "");
+    // Replace earlier import of the same document so re-uploads don't duplicate.
+    await context.supabase.from("kb_articles").delete().eq("source_name", data.name);
+    for (let i = 0; i < chunks.length; i += 50) {
+      const part = chunks.slice(i, i + 50);
+      const titles = part.map((_, j) => chunks.length > 1 ? `${base} (${i + j + 1}/${chunks.length})` : base);
+      const vecs = await embed(part.map((c, j) => `${titles[j]}\n${data.category}\n${c}`));
+      const rows = part.map((c, j) => ({ title: titles[j]!, category: data.category, content: c, source_name: data.name, sort_order: 1000 + i + j, embedding: JSON.stringify(vecs[j]) }));
+      const { error } = await context.supabase.from("kb_articles").insert(rows);
+      if (error) throw new Error(error.message);
+    }
+    return { count: chunks.length };
   });

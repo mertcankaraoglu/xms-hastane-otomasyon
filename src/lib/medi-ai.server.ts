@@ -47,17 +47,17 @@ const TOOLS = [
 async function runTool(sb: SB, name: string, a: any): Promise<unknown> {
   switch (name) {
     case "search_knowledge": {
-      let rows: { title: string; content: string }[] = [];
+      let rows: { id?: string; title: string; content: string; similarity?: number }[] = [];
       try {
         const [v] = await embed([String(a.query)]);
         const { data } = await sb.rpc("match_kb", { _embedding: JSON.stringify(v), _count: 5 });
         rows = (data ?? []) as any;
       } catch { /* fall back below */ }
       if (rows.length === 0) {
-        const { data } = await sb.from("kb_articles").select("title, content").order("sort_order");
+        const { data } = await sb.from("kb_articles").select("id, title, content").order("sort_order");
         rows = data ?? [];
       }
-      return rows.map((r) => ({ title: r.title, content: r.content }));
+      return rows.map((r) => ({ id: r.id, title: r.title, content: r.content, similarity: r.similarity }));
     }
     case "list_departments": {
       const { data } = await sb.from("departments").select("id, name, short_description").order("sort_order");
@@ -126,10 +126,13 @@ Kurallar:
   - Öneriler kısa olsun (en fazla ~6 kelime), "|" karakteri içermesin. Ad, TC, telefon gibi kişisel bilgileri asla öneri olarak yazma.`;
 }
 
+export type KbSource = { id: string; title: string; similarity: number | null; query: string };
+
 export async function runAgent(
   history: { role: "user" | "assistant"; content: string }[],
   onDelta: (t: string) => void = () => {},
-): Promise<string> {
+): Promise<{ text: string; sources: KbSource[] }> {
+  const sources = new Map<string, KbSource>();
   const sb = pubClient();
   const input: any[] = history.map((m) => ({ role: m.role, content: m.content }));
   let full = "";
@@ -150,18 +153,21 @@ export async function runAgent(
       const calls = output.filter((o) => o.type === "function_call");
       if (calls.length === 0) {
         if (!full.trim()) emit("Üzgünüm, şu an yanıt veremedim.");
-        return full.trim();
+        return { text: full.trim(), sources: [...sources.values()].slice(0, 10) };
       }
       input.push(...output);
       for (const c of calls) {
         let args: Record<string, any> = {};
         try { args = JSON.parse(c.arguments || "{}"); } catch { /* empty */ }
         const out = await runTool(sb, c.name, args).catch((e) => ({ error: String(e?.message ?? e) }));
+        if (c.name === "search_knowledge" && Array.isArray(out)) {
+          for (const r of out as any[]) if (r.id && !sources.has(r.id)) sources.set(r.id, { id: r.id, title: r.title, similarity: typeof r.similarity === "number" ? Math.round(r.similarity * 100) / 100 : null, query: String(args["query"] ?? "").slice(0, 200) });
+        }
         input.push({ type: "function_call_output", call_id: c.call_id, output: JSON.stringify(out) });
       }
     }
     emit("İsteğinizi tamamlayamadım, lütfen tekrar dener misiniz?");
-    return full.trim();
+    return { text: full.trim(), sources: [...sources.values()].slice(0, 10) };
   } catch (e) {
     let msg = "Bir sorun oluştu, lütfen tekrar deneyin.";
     if (e instanceof GatewayError) {
@@ -170,6 +176,6 @@ export async function runAgent(
       if (e.httpStatus === 402) msg = "Asistan geçici olarak hizmet dışı. Lütfen 0216 000 00 00'ı arayın.";
     } else console.error("Medi AI error", e);
     emit((full ? "\n\n" : "") + msg);
-    return full.trim();
+    return { text: full.trim(), sources: [...sources.values()].slice(0, 10) };
   }
 }
