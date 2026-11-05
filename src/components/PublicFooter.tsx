@@ -1,3 +1,4 @@
+import logo from "@/assets/logo-emblem.png";
 import { Link } from "@tanstack/react-router";
 import { Clock, Cross, Mail, MapPin, Phone } from "lucide-react";
 import { HOSPITAL_NAME } from "@/lib/hospital";
@@ -8,7 +9,7 @@ export function PublicFooter() {
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <Link to="/" className="flex items-center gap-2 font-display text-lg font-semibold">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground"><Cross className="h-4 w-4" /></span>
+            <img src={logo} alt="" width={36} height={36} className="h-9 w-9" />
             {HOSPITAL_NAME}
           </Link>
           <p className="mt-4 text-sm leading-relaxed opacity-70">Uzman kadromuz ve modern altyapımızla, sağlığınızı güvenle emanet edebileceğiniz bir hastane.</p>

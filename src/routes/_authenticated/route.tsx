@@ -1,3 +1,4 @@
+import logo from "@/assets/logo-emblem.png";
 import { createFileRoute, redirect, Outlet, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, ClipboardList, Cross, LayoutDashboard, LogOut, Settings, Stethoscope, Users, Building2 } from "lucide-react";
@@ -60,7 +61,7 @@ function Layout() {
     <div className="flex min-h-screen">
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col bg-sidebar text-sidebar-foreground md:flex">
         <Link to="/" className="flex items-center gap-2 px-5 py-5 font-display font-semibold text-sidebar-accent-foreground">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"><Cross className="h-4 w-4" /></span>
+          <img src={logo} alt="" width={36} height={36} className="h-9 w-9" />
           {HOSPITAL_NAME}
         </Link>
         <nav className="flex flex-1 flex-col gap-1 px-3">
