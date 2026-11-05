@@ -1,7 +1,7 @@
 import logo from "@/assets/logo-emblem.png";
 import { createFileRoute, redirect, Outlet, Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { CalendarDays, ClipboardList, LayoutDashboard, LogOut, Settings, Stethoscope, Users, Building2 } from "lucide-react";
+import { CalendarDays, ClipboardList, LayoutDashboard, LogOut, Settings, Stethoscope, Users, Building2, BookOpen, MessagesSquare } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,8 @@ const nav = [
   { to: "/panel/hastalar", label: "Hastalar", icon: Users },
   { to: "/panel/departmanlar", label: "Departmanlar", icon: Building2 },
   { to: "/panel/doktorlar", label: "Doktorlar", icon: Stethoscope },
+  { to: "/panel/bilgi-bankasi", label: "Bilgi Bankası", icon: BookOpen },
+  { to: "/panel/sohbetler", label: "Sohbetler", icon: MessagesSquare },
   { to: "/panel/ayarlar", label: "Ayarlar", icon: Settings },
 ] as const;
 
