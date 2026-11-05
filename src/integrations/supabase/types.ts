@@ -542,6 +542,14 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      kb_fallback: {
+        Args: { _count?: number }
+        Returns: {
+          content: string
+          id: string
+          title: string
+        }[]
+      }
       lookup_appointment: {
         Args: { _code: string; _phone: string }
         Returns: {
