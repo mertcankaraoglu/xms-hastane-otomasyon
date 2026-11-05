@@ -14,6 +14,10 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as RandevuRouteImport } from './routes/randevu'
 import { Route as RandevuSorgulaRouteImport } from './routes/randevu-sorgula'
+import { Route as BolumlerIndexRouteImport } from './routes/bolumler.index'
+import { Route as BolumlerSlugRouteImport } from './routes/bolumler.$slug'
+import { Route as DoktorlarIndexRouteImport } from './routes/doktorlar.index'
+import { Route as DoktorlarSlugRouteImport } from './routes/doktorlar.$slug'
 import { Route as AuthenticatedPanelIndexRouteImport } from './routes/_authenticated/panel.index'
 import { Route as AuthenticatedPanelAyarlarRouteImport } from './routes/_authenticated/panel.ayarlar'
 import { Route as AuthenticatedPanelDepartmanlarRouteImport } from './routes/_authenticated/panel.departmanlar'
@@ -45,6 +49,26 @@ const RandevuRoute = RandevuRouteImport.update({
 const RandevuSorgulaRoute = RandevuSorgulaRouteImport.update({
   id: '/randevu-sorgula',
   path: '/randevu-sorgula',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BolumlerIndexRoute = BolumlerIndexRouteImport.update({
+  id: '/bolumler/',
+  path: '/bolumler/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BolumlerSlugRoute = BolumlerSlugRouteImport.update({
+  id: '/bolumler/$slug',
+  path: '/bolumler/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DoktorlarIndexRoute = DoktorlarIndexRouteImport.update({
+  id: '/doktorlar/',
+  path: '/doktorlar/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DoktorlarSlugRoute = DoktorlarSlugRouteImport.update({
+  id: '/doktorlar/$slug',
+  path: '/doktorlar/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedPanelIndexRoute = AuthenticatedPanelIndexRouteImport.update({
@@ -100,6 +124,10 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/randevu': typeof RandevuRoute
   '/randevu-sorgula': typeof RandevuSorgulaRoute
+  '/bolumler/$slug': typeof BolumlerSlugRoute
+  '/doktorlar/$slug': typeof DoktorlarSlugRoute
+  '/bolumler/': typeof BolumlerIndexRoute
+  '/doktorlar/': typeof DoktorlarIndexRoute
   '/panel/ayarlar': typeof AuthenticatedPanelAyarlarRoute
   '/panel/departmanlar': typeof AuthenticatedPanelDepartmanlarRoute
   '/panel/doktorlar': typeof AuthenticatedPanelDoktorlarRoute
@@ -114,6 +142,10 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/randevu': typeof RandevuRoute
   '/randevu-sorgula': typeof RandevuSorgulaRoute
+  '/bolumler/$slug': typeof BolumlerSlugRoute
+  '/doktorlar/$slug': typeof DoktorlarSlugRoute
+  '/bolumler': typeof BolumlerIndexRoute
+  '/doktorlar': typeof DoktorlarIndexRoute
   '/panel/ayarlar': typeof AuthenticatedPanelAyarlarRoute
   '/panel/departmanlar': typeof AuthenticatedPanelDepartmanlarRoute
   '/panel/doktorlar': typeof AuthenticatedPanelDoktorlarRoute
@@ -130,6 +162,10 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/randevu': typeof RandevuRoute
   '/randevu-sorgula': typeof RandevuSorgulaRoute
+  '/bolumler/$slug': typeof BolumlerSlugRoute
+  '/doktorlar/$slug': typeof DoktorlarSlugRoute
+  '/bolumler/': typeof BolumlerIndexRoute
+  '/doktorlar/': typeof DoktorlarIndexRoute
   '/_authenticated/panel/ayarlar': typeof AuthenticatedPanelAyarlarRoute
   '/_authenticated/panel/departmanlar': typeof AuthenticatedPanelDepartmanlarRoute
   '/_authenticated/panel/doktorlar': typeof AuthenticatedPanelDoktorlarRoute
@@ -146,6 +182,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/randevu'
     | '/randevu-sorgula'
+    | '/bolumler/$slug'
+    | '/doktorlar/$slug'
+    | '/bolumler/'
+    | '/doktorlar/'
     | '/panel/ayarlar'
     | '/panel/departmanlar'
     | '/panel/doktorlar'
@@ -160,6 +200,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/randevu'
     | '/randevu-sorgula'
+    | '/bolumler/$slug'
+    | '/doktorlar/$slug'
+    | '/bolumler'
+    | '/doktorlar'
     | '/panel/ayarlar'
     | '/panel/departmanlar'
     | '/panel/doktorlar'
@@ -175,6 +219,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/randevu'
     | '/randevu-sorgula'
+    | '/bolumler/$slug'
+    | '/doktorlar/$slug'
+    | '/bolumler/'
+    | '/doktorlar/'
     | '/_authenticated/panel/ayarlar'
     | '/_authenticated/panel/departmanlar'
     | '/_authenticated/panel/doktorlar'
@@ -191,6 +239,10 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   RandevuRoute: typeof RandevuRoute
   RandevuSorgulaRoute: typeof RandevuSorgulaRoute
+  BolumlerSlugRoute: typeof BolumlerSlugRoute
+  DoktorlarSlugRoute: typeof DoktorlarSlugRoute
+  BolumlerIndexRoute: typeof BolumlerIndexRoute
+  DoktorlarIndexRoute: typeof DoktorlarIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -228,6 +280,34 @@ declare module '@tanstack/react-router' {
       path: '/randevu-sorgula'
       fullPath: '/randevu-sorgula'
       preLoaderRoute: typeof RandevuSorgulaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bolumler/': {
+      id: '/bolumler/'
+      path: '/bolumler'
+      fullPath: '/bolumler/'
+      preLoaderRoute: typeof BolumlerIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bolumler/$slug': {
+      id: '/bolumler/$slug'
+      path: '/bolumler/$slug'
+      fullPath: '/bolumler/$slug'
+      preLoaderRoute: typeof BolumlerSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/doktorlar/': {
+      id: '/doktorlar/'
+      path: '/doktorlar'
+      fullPath: '/doktorlar/'
+      preLoaderRoute: typeof DoktorlarIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/doktorlar/$slug': {
+      id: '/doktorlar/$slug'
+      path: '/doktorlar/$slug'
+      fullPath: '/doktorlar/$slug'
+      preLoaderRoute: typeof DoktorlarSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/panel/': {
@@ -320,6 +400,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   RandevuRoute: RandevuRoute,
   RandevuSorgulaRoute: RandevuSorgulaRoute,
+  BolumlerSlugRoute: BolumlerSlugRoute,
+  DoktorlarSlugRoute: DoktorlarSlugRoute,
+  BolumlerIndexRoute: BolumlerIndexRoute,
+  DoktorlarIndexRoute: DoktorlarIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

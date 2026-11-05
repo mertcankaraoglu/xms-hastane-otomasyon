@@ -118,29 +118,79 @@ export type Database = {
         }
         Relationships: []
       }
+      department_faqs: {
+        Row: {
+          answer: string
+          created_at: string
+          department_id: string
+          id: string
+          question: string
+          sort_order: number
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          department_id: string
+          id?: string
+          question: string
+          sort_order?: number
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          department_id?: string
+          id?: string
+          question?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "department_faqs_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       departments: {
         Row: {
+          cover_url: string | null
           created_at: string
           description: string | null
           icon: string
           id: string
+          long_description: string | null
           name: string
+          services: string[]
+          short_description: string | null
+          slug: string | null
           sort_order: number
         }
         Insert: {
+          cover_url?: string | null
           created_at?: string
           description?: string | null
           icon?: string
           id?: string
+          long_description?: string | null
           name: string
+          services?: string[]
+          short_description?: string | null
+          slug?: string | null
           sort_order?: number
         }
         Update: {
+          cover_url?: string | null
           created_at?: string
           description?: string | null
           icon?: string
           id?: string
+          long_description?: string | null
           name?: string
+          services?: string[]
+          short_description?: string | null
+          slug?: string | null
           sort_order?: number
         }
         Relationships: []
@@ -149,12 +199,18 @@ export type Database = {
         Row: {
           active: boolean
           bio: string | null
+          certifications: string[]
           created_at: string
           department_id: string
+          education: Json
+          experience: Json
           full_name: string
           id: string
+          interests: string[]
+          languages: string[]
           photo_url: string | null
           slot_minutes: number
+          slug: string | null
           specialty: string | null
           title: string
           working_hours: Json
@@ -162,12 +218,18 @@ export type Database = {
         Insert: {
           active?: boolean
           bio?: string | null
+          certifications?: string[]
           created_at?: string
           department_id: string
+          education?: Json
+          experience?: Json
           full_name: string
           id?: string
+          interests?: string[]
+          languages?: string[]
           photo_url?: string | null
           slot_minutes?: number
+          slug?: string | null
           specialty?: string | null
           title?: string
           working_hours?: Json
@@ -175,12 +237,18 @@ export type Database = {
         Update: {
           active?: boolean
           bio?: string | null
+          certifications?: string[]
           created_at?: string
           department_id?: string
+          education?: Json
+          experience?: Json
           full_name?: string
           id?: string
+          interests?: string[]
+          languages?: string[]
           photo_url?: string | null
           slot_minutes?: number
+          slug?: string | null
           specialty?: string | null
           title?: string
           working_hours?: Json
@@ -348,6 +416,7 @@ export type Database = {
           status: Database["public"]["Enums"]["appointment_status"]
         }[]
       }
+      tr_slugify: { Args: { _t: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "reception" | "superadmin"

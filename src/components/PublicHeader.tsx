@@ -14,6 +14,8 @@ export function PublicHeader() {
           {HOSPITAL_NAME}
         </Link>
         <nav className="flex items-center gap-1 sm:gap-2">
+          <Button asChild variant="ghost" size="sm" className="hidden md:inline-flex"><Link to="/bolumler">Bölümler</Link></Button>
+          <Button asChild variant="ghost" size="sm" className="hidden md:inline-flex"><Link to="/doktorlar">Doktorlarımız</Link></Button>
           <Button asChild variant="ghost" size="sm"><Link to="/randevu-sorgula">Randevu Sorgula</Link></Button>
           <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex"><Link to="/auth">Personel Girişi</Link></Button>
           <Button asChild size="sm"><Link to="/randevu">Randevu Al</Link></Button>

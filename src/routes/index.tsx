@@ -61,7 +61,7 @@ function Index() {
           {(data ?? []).map((d) => {
             const Icon = iconFor(d.icon);
             return (
-              <Link key={d.id} to="/randevu" search={{ department: d.id }} className="group rounded-xl border bg-card p-5 transition hover:-translate-y-0.5 hover:border-primary hover:shadow-soft">
+              <Link key={d.id} to="/bolumler/$slug" params={{ slug: d.slug ?? "" }} className="group rounded-xl border bg-card p-5 transition hover:-translate-y-0.5 hover:border-primary hover:shadow-soft">
                 <Icon className="h-7 w-7 text-primary" />
                 <h3 className="mt-3 font-semibold leading-snug">{d.name}</h3>
                 <p className="mt-1 text-xs text-muted-foreground">{d.count} doktor</p>

@@ -23,7 +23,9 @@ export const Route = createFileRoute("/_authenticated/panel/doktorlar")({
 const DAYS = [["1", "Pazartesi"], ["2", "Salı"], ["3", "Çarşamba"], ["4", "Perşembe"], ["5", "Cuma"], ["6", "Cumartesi"], ["7", "Pazar"]] as const;
 const DEFAULT_HOURS: WorkingHours = { "1": ["09:00", "17:00"], "2": ["09:00", "17:00"], "3": ["09:00", "17:00"], "4": ["09:00", "17:00"], "5": ["09:00", "17:00"] };
 
-type Form = { id?: string; department_id: string; full_name: string; title: string; specialty: string; bio: string; slot_minutes: number; working_hours: WorkingHours; active: boolean };
+type Form = { id?: string; department_id: string; full_name: string; title: string; specialty: string; bio: string; slot_minutes: number; working_hours: WorkingHours; active: boolean; photo_url: string; education: TL[]; experience: TL[]; interests: string; languages: string; certifications: string };
+type TL = { year_from: string; year_to: string; institution: string; title: string };
+const lines = (s: string) => s.split("\n").map((x) => x.trim()).filter(Boolean);
 
 function DoctorsPage() {
   const qc = useQueryClient();
@@ -37,7 +39,8 @@ function DoctorsPage() {
 
   async function save() {
     if (!form || form.full_name.trim().length < 3 || !form.department_id) { toast.error("Ad ve departman zorunlu"); return; }
-    const { id, ...payload } = form;
+    const { id, photo_url, interests, languages, certifications, ...rest } = form;
+    const payload = { ...rest, photo_url: photo_url.trim() || null, interests: lines(interests), languages: lines(languages), certifications: lines(certifications) };
     const { error } = id ? await supabase.from("doctors").update(payload).eq("id", id) : await supabase.from("doctors").insert(payload);
     if (error) { toast.error(error.message); return; }
     setForm(null); refresh();
@@ -68,7 +71,7 @@ function DoctorsPage() {
         <div className="flex gap-2">
           <Select value={dept} onValueChange={setDept}><SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
             <SelectContent><SelectItem value="all">Tüm departmanlar</SelectItem>{depts.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent></Select>
-          <Button onClick={() => setForm({ department_id: dept === "all" ? "" : dept, full_name: "", title: "Uzm. Dr.", specialty: "", bio: "", slot_minutes: 20, working_hours: DEFAULT_HOURS, active: true })}><Plus className="h-4 w-4" /> Yeni</Button>
+          <Button onClick={() => setForm({ department_id: dept === "all" ? "" : dept, full_name: "", title: "Uzm. Dr.", specialty: "", bio: "", slot_minutes: 20, working_hours: DEFAULT_HOURS, active: true, photo_url: "", education: [], experience: [], interests: "", languages: "Türkçe", certifications: "" })}><Plus className="h-4 w-4" /> Yeni</Button>
         </div>
       </div>
       <div className="rounded-xl border bg-card">
@@ -83,7 +86,7 @@ function DoctorsPage() {
                 <TableCell><button className="text-sm hover:text-primary" onClick={() => setAsstFor(d.id)}>{d.assistants?.length ? d.assistants.map((a) => a.full_name).join(", ") : <span className="text-muted-foreground">+ ekle</span>}</button></TableCell>
                 <TableCell>{d.active ? <span className="text-success">Aktif</span> : <span className="text-muted-foreground">Pasif</span>}</TableCell>
                 <TableCell className="whitespace-nowrap text-right">
-                  <Button size="icon" variant="ghost" onClick={() => setForm({ id: d.id, department_id: d.department_id, full_name: d.full_name, title: d.title, specialty: d.specialty ?? "", bio: d.bio ?? "", slot_minutes: d.slot_minutes, working_hours: d.working_hours as WorkingHours, active: d.active })}><Pencil className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" onClick={() => setForm({ id: d.id, department_id: d.department_id, full_name: d.full_name, title: d.title, specialty: d.specialty ?? "", bio: d.bio ?? "", slot_minutes: d.slot_minutes, working_hours: d.working_hours as WorkingHours, active: d.active, photo_url: d.photo_url ?? "", education: (d.education ?? []) as unknown as TL[], experience: (d.experience ?? []) as unknown as TL[], interests: (d.interests ?? []).join("\n"), languages: (d.languages ?? []).join("\n"), certifications: (d.certifications ?? []).join("\n") })}><Pencil className="h-4 w-4" /></Button>
                   <Button size="icon" variant="ghost" onClick={() => remove(d.id)}><Trash2 className="h-4 w-4" /></Button>
                 </TableCell>
               </TableRow>
@@ -108,7 +111,15 @@ function DoctorsPage() {
                 </div>
                 <div className="grid gap-1.5"><Label>Uzmanlık</Label><Input value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })} /></div>
               </div>
-              <div className="grid gap-1.5"><Label>Özgeçmiş</Label><Textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} /></div>
+              <div className="grid gap-1.5"><Label>Hakkında / özgeçmiş</Label><Textarea rows={4} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} /></div>
+              <div className="grid gap-1.5"><Label>Fotoğraf bağlantısı (https://...)</Label><Input value={form.photo_url} onChange={(e) => setForm({ ...form, photo_url: e.target.value })} /></div>
+              <TLEditor label="Eğitim" items={form.education} onChange={(education) => setForm({ ...form, education })} />
+              <TLEditor label="Kariyer" items={form.experience} onChange={(experience) => setForm({ ...form, experience })} />
+              <div className="grid grid-cols-3 gap-3">
+                <div className="grid gap-1.5"><Label>İlgi alanları</Label><Textarea rows={3} placeholder="Her satıra bir" value={form.interests} onChange={(e) => setForm({ ...form, interests: e.target.value })} /></div>
+                <div className="grid gap-1.5"><Label>Diller</Label><Textarea rows={3} placeholder="Her satıra bir" value={form.languages} onChange={(e) => setForm({ ...form, languages: e.target.value })} /></div>
+                <div className="grid gap-1.5"><Label>Sertifikalar</Label><Textarea rows={3} placeholder="Her satıra bir" value={form.certifications} onChange={(e) => setForm({ ...form, certifications: e.target.value })} /></div>
+              </div>
               <div className="grid grid-cols-2 items-end gap-3">
                 <div className="grid gap-1.5"><Label>Randevu süresi (dk)</Label><Input type="number" min={5} step={5} value={form.slot_minutes} onChange={(e) => setForm({ ...form, slot_minutes: Number(e.target.value) })} /></div>
                 <label className="flex items-center gap-2 pb-2 text-sm"><Switch checked={form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} /> Online randevuya açık</label>
@@ -158,6 +169,25 @@ function DoctorsPage() {
           </div>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function TLEditor({ label, items, onChange }: { label: string; items: TL[]; onChange: (v: TL[]) => void }) {
+  const set = (i: number, k: keyof TL, v: string) => onChange(items.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
+  return (
+    <div className="grid gap-2">
+      <div className="flex items-center justify-between"><Label>{label}</Label>
+        <Button type="button" size="sm" variant="outline" onClick={() => onChange([...items, { year_from: "", year_to: "", institution: "", title: "" }])}><Plus className="h-4 w-4" /> Ekle</Button></div>
+      {items.map((it, i) => (
+        <div key={i} className="grid grid-cols-[70px_70px_1fr_1fr_auto] gap-2">
+          <Input placeholder="Başlangıç" value={it.year_from} onChange={(e) => set(i, "year_from", e.target.value)} />
+          <Input placeholder="Bitiş" value={it.year_to} onChange={(e) => set(i, "year_to", e.target.value)} />
+          <Input placeholder="Kurum" value={it.institution} onChange={(e) => set(i, "institution", e.target.value)} />
+          <Input placeholder="Unvan / derece" value={it.title} onChange={(e) => set(i, "title", e.target.value)} />
+          <Button type="button" size="icon" variant="ghost" onClick={() => onChange(items.filter((_, j) => j !== i))}><X className="h-4 w-4" /></Button>
+        </div>
+      ))}
     </div>
   );
 }
