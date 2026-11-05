@@ -35,7 +35,7 @@ export function PublicHeader() {
                 const Icon = iconFor(d.icon);
                 return (
                   <DropdownMenuItem key={d.id} asChild>
-                    <Link to="/bolumler/$slug" params={{ slug: d.slug }} className="flex items-center gap-3">
+                    <Link to="/bolumler/$slug" params={{ slug: d.slug ?? "" }} className="flex items-center gap-3">
                       <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary-soft text-primary"><Icon className="h-4 w-4" /></span>
                       {d.name}
                     </Link>
