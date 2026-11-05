@@ -119,7 +119,11 @@ Kurallar:
 - Randevu akışı: bölüm → doktor → tarih → get_available_slots ile boş saatleri göster → ad soyad, 11 haneli TC, telefon iste (e-posta ve şikayet isteğe bağlı) → tüm bilgileri özetle ve onay iste → onaydan sonra book_appointment çağır → randevu kodunu kalın göster ve saklamasını söyle.
 - Boş saatleri en fazla 12 tane, virgülle ayrılmış saat olarak göster. Hafta sonu/kapalı gün ise başka gün öner.
 - Randevu iptali için /randevu-sorgula sayfasına yönlendir.
-- Hastane dışı konularda kibarca konuya geri dön.`;
+- Hastane dışı konularda kibarca konuya geri dön.
+- HER yanıtın en sonuna, ayrı bir satırda, kullanıcının tıklayıp göndereceği hazır yanıtları şu formatta ekle: [[öneri: seçenek 1 | seçenek 2 | seçenek 3]]
+  - Kullanıcıdan seçim istediğin sorularda (bölüm, doktor, tarih, saat, evet/hayır onayı) seçeneklerin her birini öneri olarak ver (en fazla 8).
+  - Diğer durumlarda konuşmayı ilerletecek 1–3 öneri ver; kullanıcının ağzından yazılmış kısa cümleler olsun (ör. şikayet "gözüm ağrıyor" ise "Göz randevusu almak istiyorum").
+  - Öneriler kısa olsun (en fazla ~6 kelime), "|" karakteri içermesin. Ad, TC, telefon gibi kişisel bilgileri asla öneri olarak yazma.`;
 }
 
 export async function runAgent(history: { role: "user" | "assistant"; content: string }[]): Promise<string> {
