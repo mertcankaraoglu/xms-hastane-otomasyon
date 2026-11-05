@@ -3,7 +3,7 @@ import { useLocation } from "@tanstack/react-router";
 import ReactMarkdown from "react-markdown";
 import { Send, X, RotateCcw } from "lucide-react";
 import nurse from "@/assets/medi-ai-nurse.png";
-import { chatHistory, chatSend, chatStart } from "@/lib/medi-ai.functions";
+import { chatHistory, chatStart } from "@/lib/medi-ai.functions";
 
 type Msg = { role: "user" | "assistant"; content: string };
 const KEY = "medi-ai-conv";
@@ -14,7 +14,7 @@ function parse(content: string): { text: string; chips: string[] } {
   const text = content.replace(re, (_, list: string) => {
     list.split("|").map((s) => s.trim()).filter(Boolean).forEach((s) => chips.push(s));
     return "";
-  }).trim();
+  }).replace(/\[\[[^\]]*$/, "").trim();
   return { text, chips: chips.slice(0, 8) };
 }
 const SUGGESTIONS = ["Randevu almak istiyorum", "Randevumu sorgula", "Hangi bölüme gitmeliyim?", "Hastaneniz hakkında bilgi"];
@@ -26,6 +26,7 @@ export function MediAIWidget() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [streaming, setStreaming] = useState(false);
   const conv = useRef<{ id: string; token: string } | null>(null);
   const loaded = useRef(false);
   const endRef = useRef<HTMLDivElement>(null);
@@ -69,11 +70,24 @@ export function MediAIWidget() {
     setBusy(true);
     try {
       const c = await ensureConv();
-      const r = await chatSend({ data: { ...c, message: t } });
-      setMsgs((m) => [...m, { role: "assistant", content: r.reply }]);
+      const res = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...c, message: t }) });
+      if (!res.ok || !res.body) throw new Error("stream failed");
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let acc = "";
+      let started = false;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        acc += dec.decode(value, { stream: true });
+        const snapshot = acc;
+        if (!started) { started = true; setStreaming(true); setMsgs((m) => [...m, { role: "assistant", content: snapshot }]); }
+        else setMsgs((m) => [...m.slice(0, -1), { role: "assistant", content: snapshot }]);
+      }
+      if (!started) setMsgs((m) => [...m, { role: "assistant", content: "Üzgünüm, şu an yanıt veremedim." }]);
     } catch {
       setMsgs((m) => [...m, { role: "assistant", content: "Bir sorun oluştu, lütfen tekrar deneyin. Acil durumlarda 112'yi, diğer konularda 0216 000 00 00'ı arayabilirsiniz." }]);
-    } finally { setBusy(false); }
+    } finally { setBusy(false); setStreaming(false); }
   }
 
   function reset() {
@@ -128,7 +142,7 @@ export function MediAIWidget() {
                 </div>
               );
             })()}
-            {busy && (
+            {busy && !streaming && (
               <div className="flex items-center gap-2">
                 <img src={nurse} alt="" width={28} height={28} className="h-7 w-7 rounded-full bg-primary-soft object-cover object-top" />
                 <span className="flex gap-1 rounded-2xl bg-muted px-3 py-2.5">
