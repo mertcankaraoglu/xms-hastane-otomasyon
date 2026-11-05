@@ -10,8 +10,10 @@ export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async () => {
     const { data } = await supabase.auth.getUser();
     if (!data.user) throw redirect({ to: "/auth" });
-    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", data.user.id);
-    return { user: data.user, roles: (roles ?? []).map((r) => r.role) };
+    const { data: roles } = await supabase.from("user_roles").select("role, active").eq("user_id", data.user.id);
+    const rows = roles ?? [];
+    const inactive = rows.length > 0 && rows.every((r) => !r.active && r.role !== "superadmin");
+    return { user: data.user, inactive, roles: rows.filter((r) => r.active || r.role === "superadmin").map((r) => r.role) };
   },
   component: Layout,
 });
@@ -27,7 +29,7 @@ const nav = [
 ] as const;
 
 function Layout() {
-  const { user, roles } = Route.useRouteContext();
+  const { user, roles, inactive } = Route.useRouteContext();
   const navigate = useNavigate();
   const qc = useQueryClient();
 
@@ -44,8 +46,8 @@ function Layout() {
     return (
       <div className="grid min-h-screen place-items-center px-4 text-center">
         <div>
-          <h1 className="text-2xl font-bold">Admin onayı bekleniyor</h1>
-          <p className="mt-2 text-muted-foreground">{user.email} hesabınız oluşturuldu. Süper yönetici onayladıktan sonra panele erişebilirsiniz.</p>
+          <h1 className="text-2xl font-bold">{inactive ? "Hesabınız pasif" : "Admin onayı bekleniyor"}</h1>
+          <p className="mt-2 text-muted-foreground">{inactive ? `${user.email} hesabınız süper yönetici tarafından pasife alındı.` : `${user.email} hesabınız oluşturuldu. Süper yönetici onayladıktan sonra panele erişebilirsiniz.`}</p>
           <Button className="mt-6 mr-2" onClick={() => window.location.reload()}>Tekrar kontrol et</Button>
           <Button className="mt-6" variant="outline" onClick={signOut}>Çıkış yap</Button>
         </div>

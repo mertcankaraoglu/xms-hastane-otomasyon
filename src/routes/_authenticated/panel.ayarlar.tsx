@@ -5,11 +5,12 @@ import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { fmtDate } from "@/lib/hospital";
-import { grantRole, listStaff, revokeRole } from "@/lib/staff.functions";
+import { grantRole, listStaff, revokeRole, setStaffActive } from "@/lib/staff.functions";
 
 export const Route = createFileRoute("/_authenticated/panel/ayarlar")({
   head: () => ({ meta: [{ title: "Ayarlar — Yönetim Paneli" }, { name: "description", content: "Kapalı günler ve kullanıcılar" }, { property: "og:title", content: "Ayarlar" }, { property: "og:description", content: "Kapalı günler ve kullanıcılar" }] }),
@@ -81,6 +82,13 @@ function Staff() {
   const list = useServerFn(listStaff);
   const grant = useServerFn(grantRole);
   const revoke = useServerFn(revokeRole);
+  const setActive = useServerFn(setStaffActive);
+  async function toggle(id: string, active: boolean) {
+    const r = await setActive({ data: { id, active } });
+    if (!r.ok) { toast.error(r.error); return; }
+    toast.success(active ? "Kullanıcı aktif edildi" : "Kullanıcı pasife alındı");
+    qc.invalidateQueries({ queryKey: ["staff"] });
+  }
   const [roleFor, setRoleFor] = useState<Record<string, "admin" | "reception">>({});
   const { data } = useQuery({ queryKey: ["staff"], queryFn: () => list() });
 
@@ -118,8 +126,14 @@ function Staff() {
       <div className="mt-3 divide-y">
         {data?.staff.map((s) => (
           <div key={s.id} className="flex items-center justify-between py-2 text-sm">
-            <span>{s.email} <span className="text-muted-foreground">· {ROLE_LABEL[s.role] ?? s.role}</span></span>
-            {s.role !== "superadmin" && <Button size="icon" variant="ghost" onClick={() => remove(s.id)}><Trash2 className="h-4 w-4" /></Button>}
+            <span className={s.active || s.role === "superadmin" ? "" : "text-muted-foreground line-through"}>{s.email} <span className="text-muted-foreground">· {ROLE_LABEL[s.role] ?? s.role}</span></span>
+            {s.role !== "superadmin" && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">{s.active ? "Aktif" : "Pasif"}</span>
+                <Switch checked={s.active} onCheckedChange={(v) => toggle(s.id, v)} aria-label="Aktif/pasif" />
+                <Button size="icon" variant="ghost" onClick={() => remove(s.id)}><Trash2 className="h-4 w-4" /></Button>
+              </div>
+            )}
           </div>
         ))}
       </div>
