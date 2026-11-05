@@ -34,7 +34,7 @@ function DoctorList() {
   const { bolum, q } = Route.useSearch();
   const navigate = useNavigate({ from: "/doktorlar/" });
   const term = (q ?? "").toLocaleLowerCase("tr");
-  const list = doctors.filter((d) => (!bolum || d.departments?.slug === bolum) && (!term || `${d.full_name} ${d.specialty ?? ""}`.toLocaleLowerCase("tr").includes(term)));
+  const list = doctors.filter((d) => (!bolum || d.departments?.slug === bolum) && (!term || `${d.title ?? ""} ${d.full_name} ${d.specialty ?? ""} ${d.departments?.name ?? ""}`.toLocaleLowerCase("tr").includes(term)));
 
   return (
     <div className="min-h-screen">
@@ -45,7 +45,7 @@ function DoctorList() {
           <p className="mt-4 max-w-xl text-lg text-muted-foreground">{doctors.length} doktorumuzun özgeçmişini, eğitimini ve uzmanlık alanlarını inceleyin.</p>
           <div className="relative mt-8 max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input className="h-12 bg-card pl-10" placeholder="Doktor adı veya uzmanlık ara" value={q ?? ""}
+            <Input className="h-12 bg-card pl-10" placeholder="Doktor adı, bölüm veya uzmanlık ara" value={q ?? ""}
               onChange={(e) => navigate({ search: (p) => ({ ...p, q: e.target.value || undefined }), replace: true })} />
           </div>
         </div>
