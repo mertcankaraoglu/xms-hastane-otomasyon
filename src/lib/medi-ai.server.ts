@@ -161,7 +161,7 @@ export async function runAgent(
         try { args = JSON.parse(c.arguments || "{}"); } catch { /* empty */ }
         const out = await runTool(sb, c.name, args).catch((e) => ({ error: String(e?.message ?? e) }));
         if (c.name === "search_knowledge" && Array.isArray(out)) {
-          for (const r of out as any[]) if (r.id && !sources.has(r.id)) sources.set(r.id, { id: r.id, title: r.title, similarity: typeof r.similarity === "number" ? Math.round(r.similarity * 100) / 100 : null, query: String(args.query ?? "").slice(0, 200) });
+          for (const r of out as any[]) if (r.id && !sources.has(r.id)) sources.set(r.id, { id: r.id, title: r.title, similarity: typeof r.similarity === "number" ? Math.round(r.similarity * 100) / 100 : null, query: String(args["query"] ?? "").slice(0, 200) });
         }
         input.push({ type: "function_call_output", call_id: c.call_id, output: JSON.stringify(out) });
       }
