@@ -6,7 +6,7 @@ Hastane sistemini Claude ve ChatGPT'ye "connector" olarak bağlanabilir hale get
 - Adres: `https://xms-hastane-otomasyon.lovable.app/mcp` (Streamable HTTP, MCP standardının güncel taşıma yöntemi).
 - Claude: Ayarlar → Connectors → "Add custom connector" → adresi yapıştır. Claude.ai, Desktop ve Claude Code destekler.
 - ChatGPT: Ayarlar → Apps & Connectors → Developer mode → "Create" → adres, kimlik doğrulama "No auth". (Özel connector için Plus/Pro/Business planı gerekir.)
-- `/api-docs` sayfasına "Claude / ChatGPT'ye bağla" bölümü: adres ve adım adım talimat.
+- Yeni sayfa `/mcp-baglanti` ("Yapay Zekâ Bağlantısı"): MCP'nin ne olduğu, kopyalanabilir server adresi, Claude (web, Desktop, Claude Code komutu `claude mcp add --transport http ...`), ChatGPT (Developer mode adımları), Cursor/VS Code için `mcp.json` örneği, 9 aracın listesi ve ne işe yaradığı, örnek istemler ("Kardiyolojide yarın boş saat var mı?"), sınırlar/gizlilik notları, sorun giderme. Footer ve `/api-docs`'tan bağlantı.
 
 ## Araçlar (9)
 Bilgi (salt okunur)
