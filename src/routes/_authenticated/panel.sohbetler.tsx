@@ -5,6 +5,8 @@ import ReactMarkdown from "react-markdown";
 import { Star } from "lucide-react";
 import { ChatSourceDetails, readChatSources } from "@/components/ChatSourceDetails";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EventDetail, EventsTable, useIntegrationEvents } from "@/components/IntegrationEvents";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/panel/sohbetler")({
@@ -15,6 +17,35 @@ export const Route = createFileRoute("/_authenticated/panel/sohbetler")({
 const fmt = (s: string) => new Date(s).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul", dateStyle: "short", timeStyle: "short" });
 
 function ChatsPage() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">Sohbetler ve Entegrasyon Kayıtları</h1>
+        <p className="text-sm text-muted-foreground">Web sitesi sohbeti, MCP (Claude/ChatGPT) ve REST API üzerinden gelen tüm istekler, kullanılan araçlar ve parametreleri.</p>
+      </div>
+      <Tabs defaultValue="web">
+        <TabsList>
+          <TabsTrigger value="web">Web sohbetleri</TabsTrigger>
+          <TabsTrigger value="mcp">MCP çağrıları</TabsTrigger>
+          <TabsTrigger value="rest">API çağrıları</TabsTrigger>
+          <TabsTrigger value="all">Tüm araç kayıtları</TabsTrigger>
+        </TabsList>
+        <TabsContent value="web" className="pt-4"><WebChats /></TabsContent>
+        <TabsContent value="mcp" className="pt-4"><ChannelLog channel="mcp" /></TabsContent>
+        <TabsContent value="rest" className="pt-4"><ChannelLog channel="rest" /></TabsContent>
+        <TabsContent value="all" className="pt-4"><ChannelLog /></TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+function ChannelLog({ channel }: { channel?: string }) {
+  const { data = [], isLoading } = useIntegrationEvents({ channel });
+  if (isLoading) return <p className="text-sm text-muted-foreground">Yükleniyor…</p>;
+  return <EventsTable events={data} showChannel={!channel} />;
+}
+
+function WebChats() {
   const [sel, setSel] = useState<string | null>(null);
   const { data: convs = [] } = useQuery({ queryKey: ["chat-convs"], queryFn: async () => {
     const { data, error } = await supabase.from("chat_conversations").select("id, message_count, created_at, updated_at, rating, feedback").gt("message_count", 0).order("updated_at", { ascending: false }).limit(200);
@@ -28,6 +59,7 @@ function ChatsPage() {
     return data ?? [];
   } });
 
+  const { data: toolEvents = [] } = useIntegrationEvents({ channel: "web_chat", conversationId: sel });
   const rated = convs.filter((c) => c.rating);
   const avg = rated.length ? rated.reduce((a, c) => a + (c.rating ?? 0), 0) / rated.length : 0;
   const current = convs.find((c) => c.id === sel);
@@ -36,10 +68,6 @@ function ChatsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Sohbetler</h1>
-        <p className="text-sm text-muted-foreground">Ziyaretçilerin Medi AI ile yaptığı görüşmeler.</p>
-      </div>
       <div className="grid gap-3 sm:grid-cols-3">
         <Stat label="Toplam sohbet" value={String(convs.length)} />
         <Stat label="Puanlanan" value={`${rated.length}${convs.length ? ` (%${Math.round((rated.length / convs.length) * 100)})` : ""}`} />
@@ -64,6 +92,12 @@ function ChatsPage() {
               {srcCount.size > 0 && <div><span className="font-medium">Bu sohbette modele getirilen RAG kaynakları:</span>
                 <div className="mt-1 flex flex-wrap gap-1.5">{[...srcCount.values()].map((s) => <span key={s.title} className="rounded-full bg-primary-soft px-2 py-0.5 text-xs text-primary">{s.title} ×{s.n}</span>)}</div></div>}
             </div>
+          )}
+          {sel && toolEvents.length > 0 && (
+            <details className="rounded-xl border bg-background p-3 text-sm">
+              <summary className="cursor-pointer font-medium">Bu sohbette kullanılan araçlar ({toolEvents.length}) · {[...new Set(toolEvents.map((e) => e.tool))].join(", ")}</summary>
+              <div className="mt-3 space-y-3">{toolEvents.map((e) => <details key={e.id} className="rounded-lg border p-2"><summary className="cursor-pointer font-mono text-xs">{e.step ? `#${e.step} ` : ""}{e.tool} · {e.status === "ok" ? "başarılı" : "hata"} · {e.duration_ms} ms</summary><div className="mt-2"><EventDetail e={e} /></div></details>)}</div>
+            </details>
           )}
           {msgs.map((m) => (
             <div key={m.id} className={m.role === "user" ? "flex justify-end" : "flex"}>

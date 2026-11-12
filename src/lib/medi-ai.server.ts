@@ -142,6 +142,7 @@ export type KbSource = { id: string; title: string; similarity: number | null; q
 export async function runAgent(
   history: { role: "user" | "assistant"; content: string }[],
   onDelta: (t: string) => void = () => {},
+  ctx: { conversationId?: string; ipHash?: string | null; client?: string | null } = {},
 ): Promise<{ text: string; sources: KbSource[] }> {
   const sources = new Map<string, KbSource>();
   const sb = pubClient();
@@ -170,7 +171,11 @@ export async function runAgent(
       for (const c of calls) {
         let args: Record<string, any> = {};
         try { args = JSON.parse(c.arguments || "{}"); } catch { /* empty */ }
+        const t0 = Date.now();
         const out = await runTool(sb, c.name, args).catch((e) => ({ error: String(e?.message ?? e) }));
+        const errMsg = out && typeof out === "object" && !Array.isArray(out) && typeof (out as any).error === "string" ? (out as any).error : null;
+        const { logEvent } = await import("./event-log.server");
+        void logEvent({ channel: "web_chat", tool: c.name, conversationId: ctx.conversationId, ipHash: ctx.ipHash, client: ctx.client, params: args, result: out, status: errMsg ? "error" : "ok", error: errMsg, durationMs: Date.now() - t0, step: step + 1 });
         if (c.name === "search_knowledge" && Array.isArray(out)) {
           for (const r of out as any[]) if (r.id && !sources.has(r.id)) sources.set(r.id, { id: r.id, title: r.title, similarity: typeof r.similarity === "number" ? Math.round(r.similarity * 100) / 100 : null, query: String(args["query"] ?? "").slice(0, 200) });
         }
