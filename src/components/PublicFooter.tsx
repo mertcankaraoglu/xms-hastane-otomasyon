@@ -17,6 +17,7 @@ export function PublicFooter() {
         <FooterCol title="Kurumsal">
           <FLink to="/bolumler">Bölümlerimiz</FLink>
           <FLink to="/doktorlar">Doktorlarımız</FLink>
+          <FLink to="/api-docs">Geliştiriciler (API)</FLink>
           <FLink to="/auth">Personel Girişi</FLink>
         </FooterCol>
         <FooterCol title="Hasta Hizmetleri">

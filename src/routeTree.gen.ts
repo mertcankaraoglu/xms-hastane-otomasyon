@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as ApiDocsRouteImport } from './routes/api-docs'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as RandevuRouteImport } from './routes/randevu'
 import { Route as RandevuSorgulaRouteImport } from './routes/randevu-sorgula'
@@ -38,6 +39,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDocsRoute = ApiDocsRouteImport.update({
+  id: '/api-docs',
+  path: '/api-docs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -147,6 +153,7 @@ const ApiPublicV1SplatRoute = ApiPublicV1SplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
   '/randevu': typeof RandevuRoute
   '/randevu-sorgula': typeof RandevuSorgulaRoute
@@ -169,6 +176,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
   '/randevu': typeof RandevuRoute
   '/randevu-sorgula': typeof RandevuSorgulaRoute
@@ -193,6 +201,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
   '/randevu': typeof RandevuRoute
   '/randevu-sorgula': typeof RandevuSorgulaRoute
@@ -217,6 +226,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/api-docs'
     | '/auth'
     | '/randevu'
     | '/randevu-sorgula'
@@ -239,6 +249,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/api-docs'
     | '/auth'
     | '/randevu'
     | '/randevu-sorgula'
@@ -262,6 +273,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/api-docs'
     | '/auth'
     | '/randevu'
     | '/randevu-sorgula'
@@ -286,6 +298,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  ApiDocsRoute: typeof ApiDocsRoute
   AuthRoute: typeof AuthRoute
   RandevuRoute: typeof RandevuRoute
   RandevuSorgulaRoute: typeof RandevuSorgulaRoute
@@ -311,6 +324,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api-docs': {
+      id: '/api-docs'
+      path: '/api-docs'
+      fullPath: '/api-docs'
+      preLoaderRoute: typeof ApiDocsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -481,6 +501,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  ApiDocsRoute: ApiDocsRoute,
   AuthRoute: AuthRoute,
   RandevuRoute: RandevuRoute,
   RandevuSorgulaRoute: RandevuSorgulaRoute,
