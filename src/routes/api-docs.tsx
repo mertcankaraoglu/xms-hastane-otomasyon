@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { PublicHeader } from "@/components/PublicHeader";
 import { PublicFooter } from "@/components/PublicFooter";
@@ -31,6 +31,7 @@ function ApiDocs() {
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-12">
         <h1 className="font-display text-4xl font-semibold text-foreground">Geliştirici API</h1>
         <p className="mt-3 max-w-2xl text-muted-foreground">{D} Anahtar gerekmez; IP başına dakikada 120 okuma ve 10 randevu işlemi sınırı vardır. Tüm saatler İstanbul saatidir.</p>
+        <Button asChild className="mt-5"><Link to="/api-docs/swagger">Swagger görünümü</Link></Button>
         <div className="mt-6 grid gap-3 rounded-xl border bg-card p-5 text-sm sm:grid-cols-3">
           <div><div className="text-muted-foreground">Temel adres</div><code className="font-mono">{BASE}</code></div>
           <div><div className="text-muted-foreground">Hata biçimi</div><code className="font-mono">{"{ error: { code, message } }"}</code></div>
