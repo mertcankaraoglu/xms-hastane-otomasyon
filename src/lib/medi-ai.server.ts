@@ -32,10 +32,11 @@ const fn = (name: string, description: string, properties: Record<string, unknow
 const str = (description: string) => ({ type: "string", description });
 const optStr = (description: string) => ({ type: ["string", "null"], description });
 
-const TOOLS = [
+export const TOOLS = [
   fn("search_knowledge", "Hastane bilgi bankasında arama yapar (adres, ulaşım, saatler, tarihçe, sigorta, ücret, ziyaret, hizmetler vb.). Hastane hakkındaki her soruda önce bunu kullan.", { query: str("Arama sorgusu") }, ["query"]),
   fn("list_departments", "Hastanedeki tüm bölümleri listeler.", {}, []),
   fn("list_doctors", "Doktorları listeler. department_id verilirse o bölümün doktorlarını döner.", { department_id: optStr("Bölüm id (uuid) veya null") }, ["department_id"]),
+  fn("get_doctor_profile", "Bir doktorun tüm yayınlanmış profil bilgilerini getirir: özgeçmiş, eğitim, kariyer, ilgi alanları, diller, sertifika ve üyelikler, çalışma saatleri, fotoğraf ve profil bağlantısı. Doktor hakkında bilgi sorulduğunda mutlaka kullan. doctor_id değerini list_doctors sonucundan al.", { doctor_id: str("list_doctors sonucundaki doktor id (uuid)") }, ["doctor_id"]),
   fn("get_available_slots", "Bir doktorun belirli bir gündeki boş randevu saatlerini döner.", { doctor_id: str("Doktor id"), date: str("YYYY-MM-DD (İstanbul tarihi)") }, ["doctor_id", "date"]),
   fn("book_appointment", "Randevu oluşturur. SADECE kullanıcı tüm bilgileri özetledikten sonra açıkça onay verdiyse çağır.", {
     doctor_id: str("Doktor id"), starts_at: str("get_available_slots'tan gelen ISO saat"), full_name: str("Ad soyad"),
@@ -44,7 +45,7 @@ const TOOLS = [
   fn("lookup_appointment", "Randevu kodu ve telefon ile randevu sorgular.", { code: str("Randevu kodu"), phone: str("Telefon") }, ["code", "phone"]),
 ];
 
-async function runTool(sb: SB, name: string, a: any): Promise<unknown> {
+export async function runTool(sb: SB, name: string, a: any): Promise<unknown> {
   switch (name) {
     case "search_knowledge": {
       let rows: { id?: string; title: string; content: string; similarity?: number }[] = [];
@@ -68,6 +69,14 @@ async function runTool(sb: SB, name: string, a: any): Promise<unknown> {
       if (a.department_id) q = q.eq("department_id", a.department_id);
       const { data } = await q.order("full_name");
       return (data ?? []).map((d: any) => ({ id: d.id, name: `${d.title} ${d.full_name}`, specialty: d.specialty, department_id: d.department_id, department: d.departments?.name }));
+    }
+    case "get_doctor_profile": {
+      const { data, error } = await sb.from("doctors")
+        .select("id, slug, full_name, title, specialty, bio, photo_url, department_id, working_hours, education, experience, interests, languages, certifications, departments(name, slug)")
+        .eq("id", a.doctor_id).eq("active", true).maybeSingle();
+      if (error) return { error: "Doktor profili şu an alınamadı; tekrar deneyin." };
+      if (!data) return { error: "Yayınlanmış doktor profili bulunamadı." };
+      return { ...data, profile_url: data.slug ? `/doktorlar/${data.slug}` : null, timezone: "Europe/Istanbul" };
     }
     case "get_available_slots": {
       const date = String(a.date);
@@ -115,6 +124,8 @@ Kurallar:
 - Her zaman Türkçe, sıcak, kısa ve net yanıt ver. Markdown (kalın, liste) kullanabilirsin.
 - Hastane hakkındaki soruları yalnızca search_knowledge sonuçlarına dayanarak cevapla; bilgi yoksa uydurma, çağrı merkezine (0216 000 00 00) yönlendir.
 - Bölüm/doktor bilgisi için list_departments / list_doctors kullan; id'leri kullanıcıya gösterme.
+- Doktorun özgeçmişi veya hakkında bilgi istendiğinde önce list_doctors ile doğru doktoru bul, ardından MUTLAKA get_doctor_profile çağır. Önceki mesajda profil bilgisi olmadığı söylenmiş olsa bile güncel profili getir; yalnızca listedeki uzmanlıkla yetinme. Doktor profili sorularında kaynak get_doctor_profile'dır, search_knowledge zorunlu değildir.
+- Doktor hakkında genel bilgi sorulduğunda kayıtlı TÜM profil bilgilerini başlıklarla ver: unvan/ad, bölüm ve uzmanlık, özgeçmişin tamamı, eğitim ve kariyerin tüm tarih/kurum/görev kayıtları, tüm ilgi alanları, diller, sertifika ve üyelikler, çalışma gün ve saatleri (İstanbul saati). Bu yanıtta kısa yanıt kuralı yerine eksiksizlik önceliklidir. Profil bağlantısını Markdown bağlantısı olarak ekle; fotoğraf varsa profil sayfasında görülebileceğini belirt. Kullanıcı yalnızca belirli bir alanı sorarsa o alanı ayrıntılı yanıtla. Boş alanlar için sadece ilgili bilginin profilde belirtilmediğini söyle; dolu bilgileri yok sayma, uydurma, hasta kayıtlarını paylaşma. Çalışma saatleri kesin randevu müsaitliği değildir; müsaitlik için get_available_slots kullan.
 - Şikayete göre uygun bölümü öner ama ASLA teşhis koyma veya ilaç önerme. Göğüs ağrısı, nefes darlığı, bilinç kaybı, felç belirtisi, ciddi kanama gibi acil durumlarda hemen 112'yi aramasını söyle.
 - Randevu akışı: bölüm → doktor → tarih → get_available_slots ile boş saatleri göster → ad soyad, 11 haneli TC, telefon iste (e-posta ve şikayet isteğe bağlı) → tüm bilgileri özetle ve onay iste → onaydan sonra book_appointment çağır → randevu kodunu kalın göster ve saklamasını söyle.
 - Boş saatleri en fazla 12 tane, virgülle ayrılmış saat olarak göster. Hafta sonu/kapalı gün ise başka gün öner.
