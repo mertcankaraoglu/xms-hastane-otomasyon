@@ -22,7 +22,7 @@ export const doctorsQuery = queryOptions({
 export const APPT_SELECT = "*, patients(id, full_name, phone, tc_no), doctors(id, full_name, title, department_id, departments(name))";
 
 export type ApptRow = {
-  id: string; code: string; starts_at: string; ends_at: string; status: import("./hospital").Status;
+  id: string; code: string; starts_at: string; ends_at: string; created_at: string; status: import("./hospital").Status;
   complaint: string | null; source: string; patient_id: string; doctor_id: string;
   patients: { id: string; full_name: string; phone: string; tc_no: string | null } | null;
   doctors: { id: string; full_name: string; title: string; department_id: string; departments: { name: string } | null } | null;

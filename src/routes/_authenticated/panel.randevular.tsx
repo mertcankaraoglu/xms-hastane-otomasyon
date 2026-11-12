@@ -32,7 +32,8 @@ function ListPage() {
   const rows = useMemo(() => {
     const s = q.toLowerCase();
     return appts.filter((a) => (status === "all" || a.status === status) && (dept === "all" || a.doctors?.department_id === dept) &&
-      (!s || a.code.toLowerCase().includes(s) || a.patients?.full_name.toLowerCase().includes(s) || a.patients?.phone.includes(s) || a.doctors?.full_name.toLowerCase().includes(s)));
+      (!s || a.code.toLowerCase().includes(s) || a.patients?.full_name.toLowerCase().includes(s) || a.patients?.phone.includes(s) || a.doctors?.full_name.toLowerCase().includes(s)))
+      .sort((x, y) => y.created_at.localeCompare(x.created_at));
   }, [appts, q, status, dept]);
 
   async function setRowStatus(id: string, st: Status) {
@@ -71,12 +72,13 @@ function ListPage() {
       </div>
       <div className="rounded-xl border bg-card">
         <Table>
-          <TableHeader><TableRow><TableHead>Kod</TableHead><TableHead>Tarih</TableHead><TableHead>Hasta</TableHead><TableHead>Doktor</TableHead><TableHead>Kaynak</TableHead><TableHead>Durum</TableHead><TableHead /></TableRow></TableHeader>
+          <TableHeader><TableRow><TableHead>Kod</TableHead><TableHead>Randevu</TableHead><TableHead>Alınma</TableHead><TableHead>Hasta</TableHead><TableHead>Doktor</TableHead><TableHead>Kaynak</TableHead><TableHead>Durum</TableHead><TableHead /></TableRow></TableHeader>
           <TableBody>
             {rows.map((a) => (
               <TableRow key={a.id}>
                 <TableCell className="font-mono text-xs">{a.code}</TableCell>
                 <TableCell className="whitespace-nowrap">{fmtDateTime(a.starts_at)}</TableCell>
+                <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{fmtDateTime(a.created_at)}</TableCell>
                 <TableCell><Link to="/panel/hastalar/$id" params={{ id: a.patient_id }} className="font-medium hover:text-primary">{a.patients?.full_name}</Link><div className="text-xs text-muted-foreground">{a.patients?.phone}</div></TableCell>
                 <TableCell>{a.doctors?.full_name}<div className="text-xs text-muted-foreground">{a.doctors?.departments?.name}</div></TableCell>
                 <TableCell className="text-xs">{a.source === "online" ? "Online" : "Panel"}</TableCell>
@@ -89,7 +91,7 @@ function ListPage() {
                 <TableCell><Button size="sm" variant="ghost" onClick={() => setDialog({ open: true, appt: a })}>Düzenle</Button></TableCell>
               </TableRow>
             ))}
-            {rows.length === 0 && <TableRow><TableCell colSpan={7} className="py-10 text-center text-muted-foreground">Kayıt yok</TableCell></TableRow>}
+            {rows.length === 0 && <TableRow><TableCell colSpan={8} className="py-10 text-center text-muted-foreground">Kayıt yok</TableCell></TableRow>}
           </TableBody>
         </Table>
       </div>
