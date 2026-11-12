@@ -352,6 +352,66 @@ export type Database = {
           },
         ]
       }
+      integration_events: {
+        Row: {
+          channel: string
+          client: string | null
+          conversation_id: string | null
+          created_at: string
+          duration_ms: number | null
+          error: string | null
+          http_status: number | null
+          id: string
+          ip_hash: string | null
+          method: string | null
+          params: Json | null
+          path: string | null
+          result: Json | null
+          session_id: string | null
+          status: string
+          step: number | null
+          tool: string
+        }
+        Insert: {
+          channel: string
+          client?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          error?: string | null
+          http_status?: number | null
+          id?: string
+          ip_hash?: string | null
+          method?: string | null
+          params?: Json | null
+          path?: string | null
+          result?: Json | null
+          session_id?: string | null
+          status?: string
+          step?: number | null
+          tool: string
+        }
+        Update: {
+          channel?: string
+          client?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          error?: string | null
+          http_status?: number | null
+          id?: string
+          ip_hash?: string | null
+          method?: string | null
+          params?: Json | null
+          path?: string | null
+          result?: Json | null
+          session_id?: string | null
+          status?: string
+          step?: number | null
+          tool?: string
+        }
+        Relationships: []
+      }
       kb_articles: {
         Row: {
           category: string
@@ -574,6 +634,26 @@ export type Database = {
           id: string
           title: string
         }[]
+      }
+      log_integration_event: {
+        Args: {
+          _channel: string
+          _client?: string
+          _conversation_id?: string
+          _duration_ms?: number
+          _error?: string
+          _http_status?: number
+          _ip_hash?: string
+          _method?: string
+          _params?: Json
+          _path?: string
+          _result?: Json
+          _session_id?: string
+          _status?: string
+          _step?: number
+          _tool: string
+        }
+        Returns: undefined
       }
       lookup_appointment: {
         Args: { _code: string; _phone: string }
