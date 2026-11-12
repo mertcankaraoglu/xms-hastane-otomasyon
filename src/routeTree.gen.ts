@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as ApiDocsRouteImport } from './routes/api-docs'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as RandevuRouteImport } from './routes/randevu'
 import { Route as RandevuSorgulaRouteImport } from './routes/randevu-sorgula'
@@ -29,6 +30,7 @@ import { Route as AuthenticatedPanelSohbetlerRouteImport } from './routes/_authe
 import { Route as AuthenticatedPanelTakvimRouteImport } from './routes/_authenticated/panel.takvim'
 import { Route as AuthenticatedPanelHastalarIndexRouteImport } from './routes/_authenticated/panel.hastalar.index'
 import { Route as AuthenticatedPanelHastalarIdRouteImport } from './routes/_authenticated/panel.hastalar.$id'
+import { Route as ApiPublicV1SplatRouteImport } from './routes/api/public/v1/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -37,6 +39,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDocsRoute = ApiDocsRouteImport.update({
+  id: '/api-docs',
+  path: '/api-docs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -138,9 +145,15 @@ const AuthenticatedPanelHastalarIdRoute =
     path: '/panel/hastalar/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicV1SplatRoute = ApiPublicV1SplatRouteImport.update({
+  id: '/api/public/v1/$',
+  path: '/api/public/v1/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
   '/randevu': typeof RandevuRoute
   '/randevu-sorgula': typeof RandevuSorgulaRoute
@@ -158,10 +171,12 @@ export interface FileRoutesByFullPath {
   '/panel/takvim': typeof AuthenticatedPanelTakvimRoute
   '/panel/': typeof AuthenticatedPanelIndexRoute
   '/panel/hastalar/$id': typeof AuthenticatedPanelHastalarIdRoute
+  '/api/public/v1/$': typeof ApiPublicV1SplatRoute
   '/panel/hastalar/': typeof AuthenticatedPanelHastalarIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
   '/randevu': typeof RandevuRoute
   '/randevu-sorgula': typeof RandevuSorgulaRoute
@@ -179,12 +194,14 @@ export interface FileRoutesByTo {
   '/panel/takvim': typeof AuthenticatedPanelTakvimRoute
   '/panel': typeof AuthenticatedPanelIndexRoute
   '/panel/hastalar/$id': typeof AuthenticatedPanelHastalarIdRoute
+  '/api/public/v1/$': typeof ApiPublicV1SplatRoute
   '/panel/hastalar': typeof AuthenticatedPanelHastalarIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
   '/randevu': typeof RandevuRoute
   '/randevu-sorgula': typeof RandevuSorgulaRoute
@@ -202,12 +219,14 @@ export interface FileRoutesById {
   '/_authenticated/panel/takvim': typeof AuthenticatedPanelTakvimRoute
   '/_authenticated/panel/': typeof AuthenticatedPanelIndexRoute
   '/_authenticated/panel/hastalar/$id': typeof AuthenticatedPanelHastalarIdRoute
+  '/api/public/v1/$': typeof ApiPublicV1SplatRoute
   '/_authenticated/panel/hastalar/': typeof AuthenticatedPanelHastalarIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/api-docs'
     | '/auth'
     | '/randevu'
     | '/randevu-sorgula'
@@ -225,10 +244,12 @@ export interface FileRouteTypes {
     | '/panel/takvim'
     | '/panel/'
     | '/panel/hastalar/$id'
+    | '/api/public/v1/$'
     | '/panel/hastalar/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/api-docs'
     | '/auth'
     | '/randevu'
     | '/randevu-sorgula'
@@ -246,11 +267,13 @@ export interface FileRouteTypes {
     | '/panel/takvim'
     | '/panel'
     | '/panel/hastalar/$id'
+    | '/api/public/v1/$'
     | '/panel/hastalar'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/api-docs'
     | '/auth'
     | '/randevu'
     | '/randevu-sorgula'
@@ -268,12 +291,14 @@ export interface FileRouteTypes {
     | '/_authenticated/panel/takvim'
     | '/_authenticated/panel/'
     | '/_authenticated/panel/hastalar/$id'
+    | '/api/public/v1/$'
     | '/_authenticated/panel/hastalar/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  ApiDocsRoute: typeof ApiDocsRoute
   AuthRoute: typeof AuthRoute
   RandevuRoute: typeof RandevuRoute
   RandevuSorgulaRoute: typeof RandevuSorgulaRoute
@@ -282,6 +307,7 @@ export interface RootRouteChildren {
   DoktorlarSlugRoute: typeof DoktorlarSlugRoute
   BolumlerIndexRoute: typeof BolumlerIndexRoute
   DoktorlarIndexRoute: typeof DoktorlarIndexRoute
+  ApiPublicV1SplatRoute: typeof ApiPublicV1SplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -298,6 +324,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api-docs': {
+      id: '/api-docs'
+      path: '/api-docs'
+      fullPath: '/api-docs'
+      preLoaderRoute: typeof ApiDocsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -426,6 +459,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPanelHastalarIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/v1/$': {
+      id: '/api/public/v1/$'
+      path: '/api/public/v1/$'
+      fullPath: '/api/public/v1/$'
+      preLoaderRoute: typeof ApiPublicV1SplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -461,6 +501,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  ApiDocsRoute: ApiDocsRoute,
   AuthRoute: AuthRoute,
   RandevuRoute: RandevuRoute,
   RandevuSorgulaRoute: RandevuSorgulaRoute,
@@ -469,6 +510,7 @@ const rootRouteChildren: RootRouteChildren = {
   DoktorlarSlugRoute: DoktorlarSlugRoute,
   BolumlerIndexRoute: BolumlerIndexRoute,
   DoktorlarIndexRoute: DoktorlarIndexRoute,
+  ApiPublicV1SplatRoute: ApiPublicV1SplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

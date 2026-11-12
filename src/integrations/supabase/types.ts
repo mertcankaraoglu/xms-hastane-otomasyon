@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_rate_limits: {
+        Row: {
+          bucket: string
+          hits: number
+          ip_hash: string
+          window_start: string
+        }
+        Insert: {
+          bucket: string
+          hits?: number
+          ip_hash: string
+          window_start: string
+        }
+        Update: {
+          bucket?: string
+          hits?: number
+          ip_hash?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           cancel_reason: string | null
@@ -481,6 +502,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      api_hit: {
+        Args: { _bucket: string; _ip_hash: string; _limit: number }
+        Returns: boolean
+      }
       book_appointment: {
         Args: {
           _complaint: string
