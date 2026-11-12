@@ -13,8 +13,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as ApiDocsRouteImport } from './routes/api-docs'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as McpRouteImport } from './routes/mcp'
+import { Route as McpBaglantiRouteImport } from './routes/mcp-baglanti'
 import { Route as RandevuRouteImport } from './routes/randevu'
 import { Route as RandevuSorgulaRouteImport } from './routes/randevu-sorgula'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as ApiDocsSwaggerRouteImport } from './routes/api-docs_.swagger'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as BolumlerIndexRouteImport } from './routes/bolumler.index'
@@ -52,6 +55,16 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpBaglantiRoute = McpBaglantiRouteImport.update({
+  id: '/mcp-baglanti',
+  path: '/mcp-baglanti',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RandevuRoute = RandevuRouteImport.update({
   id: '/randevu',
   path: '/randevu',
@@ -62,6 +75,12 @@ const RandevuSorgulaRoute = RandevuSorgulaRouteImport.update({
   path: '/randevu-sorgula',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiDocsSwaggerRoute = ApiDocsSwaggerRouteImport.update({
   id: '/api-docs_/swagger',
   path: '/api-docs/swagger',
@@ -161,8 +180,11 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
+  '/mcp': typeof McpRoute
+  '/mcp-baglanti': typeof McpBaglantiRoute
   '/randevu': typeof RandevuRoute
   '/randevu-sorgula': typeof RandevuSorgulaRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api-docs/swagger': typeof ApiDocsSwaggerRoute
   '/api/chat': typeof ApiChatRoute
   '/bolumler/$slug': typeof BolumlerSlugRoute
@@ -185,8 +207,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
+  '/mcp': typeof McpRoute
+  '/mcp-baglanti': typeof McpBaglantiRoute
   '/randevu': typeof RandevuRoute
   '/randevu-sorgula': typeof RandevuSorgulaRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api-docs/swagger': typeof ApiDocsSwaggerRoute
   '/api/chat': typeof ApiChatRoute
   '/bolumler/$slug': typeof BolumlerSlugRoute
@@ -211,8 +236,11 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/api-docs': typeof ApiDocsRoute
   '/auth': typeof AuthRoute
+  '/mcp': typeof McpRoute
+  '/mcp-baglanti': typeof McpBaglantiRoute
   '/randevu': typeof RandevuRoute
   '/randevu-sorgula': typeof RandevuSorgulaRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api-docs_/swagger': typeof ApiDocsSwaggerRoute
   '/api/chat': typeof ApiChatRoute
   '/bolumler/$slug': typeof BolumlerSlugRoute
@@ -237,8 +265,11 @@ export interface FileRouteTypes {
     | '/'
     | '/api-docs'
     | '/auth'
+    | '/mcp'
+    | '/mcp-baglanti'
     | '/randevu'
     | '/randevu-sorgula'
+    | '/.well-known/oauth-protected-resource'
     | '/api-docs/swagger'
     | '/api/chat'
     | '/bolumler/$slug'
@@ -261,8 +292,11 @@ export interface FileRouteTypes {
     | '/'
     | '/api-docs'
     | '/auth'
+    | '/mcp'
+    | '/mcp-baglanti'
     | '/randevu'
     | '/randevu-sorgula'
+    | '/.well-known/oauth-protected-resource'
     | '/api-docs/swagger'
     | '/api/chat'
     | '/bolumler/$slug'
@@ -286,8 +320,11 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/api-docs'
     | '/auth'
+    | '/mcp'
+    | '/mcp-baglanti'
     | '/randevu'
     | '/randevu-sorgula'
+    | '/.well-known/oauth-protected-resource'
     | '/api-docs_/swagger'
     | '/api/chat'
     | '/bolumler/$slug'
@@ -312,8 +349,11 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   ApiDocsRoute: typeof ApiDocsRoute
   AuthRoute: typeof AuthRoute
+  McpRoute: typeof McpRoute
+  McpBaglantiRoute: typeof McpBaglantiRoute
   RandevuRoute: typeof RandevuRoute
   RandevuSorgulaRoute: typeof RandevuSorgulaRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiDocsSwaggerRoute: typeof ApiDocsSwaggerRoute
   ApiChatRoute: typeof ApiChatRoute
   BolumlerSlugRoute: typeof BolumlerSlugRoute
@@ -353,6 +393,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp-baglanti': {
+      id: '/mcp-baglanti'
+      path: '/mcp-baglanti'
+      fullPath: '/mcp-baglanti'
+      preLoaderRoute: typeof McpBaglantiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/randevu': {
       id: '/randevu'
       path: '/randevu'
@@ -365,6 +419,13 @@ declare module '@tanstack/react-router' {
       path: '/randevu-sorgula'
       fullPath: '/randevu-sorgula'
       preLoaderRoute: typeof RandevuSorgulaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api-docs_/swagger': {
@@ -523,8 +584,12 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   ApiDocsRoute: ApiDocsRoute,
   AuthRoute: AuthRoute,
+  McpRoute: McpRoute,
+  McpBaglantiRoute: McpBaglantiRoute,
   RandevuRoute: RandevuRoute,
   RandevuSorgulaRoute: RandevuSorgulaRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ApiDocsSwaggerRoute: ApiDocsSwaggerRoute,
   ApiChatRoute: ApiChatRoute,
   BolumlerSlugRoute: BolumlerSlugRoute,

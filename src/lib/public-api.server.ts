@@ -2,6 +2,7 @@ import { z } from "zod";
 import { bookingPhoneSchema } from "@/lib/phone";
 import { generateSlots, istanbulYmd, dayBoundsUtc, type WorkingHours } from "@/lib/slots";
 import { pubClient } from "@/lib/medi-ai.server";
+export { pubClient };
 
 export const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -55,7 +56,7 @@ async function sha256(s: string) {
 
 export const LIMITS = { read: 120, write: 10 } as const;
 
-async function rateLimit(sb: ReturnType<typeof pubClient>, request: Request, bucket: keyof typeof LIMITS) {
+export async function rateLimit(sb: ReturnType<typeof pubClient>, request: Request, bucket: keyof typeof LIMITS) {
   const ip = request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
   const { data, error } = await sb.rpc("api_hit", { _ip_hash: await sha256(ip), _bucket: bucket, _limit: LIMITS[bucket] });
   if (error) { console.error("rate limit check failed", error.message); return; }
@@ -90,19 +91,18 @@ async function body(request: Request) {
   return request.json().catch(() => { throw new ApiError(400, "invalid_json", "Geçerli bir JSON gövdesi gönderin"); });
 }
 
-export async function handle(request: Request, path: string): Promise<Response> {
-  try {
-    const method = request.method;
+export type Sb = ReturnType<typeof pubClient>;
+
+/** Core dispatcher shared by the REST API and the MCP server. Throws ApiError. */
+export async function apiCall(sb: Sb, method: "GET" | "POST", path: string, query: URLSearchParams = new URLSearchParams(), getBody: () => Promise<unknown> = async () => ({})): Promise<{ data: any; status?: number }> {
     const seg = path.split("/").filter(Boolean);
-    const sb = pubClient();
-    const url = new URL(request.url);
+    const url = { searchParams: query };
+    const body = () => getBody();
 
     if (method === "GET") {
-      if (seg[0] === "openapi.json") { const { openapi } = await import("@/lib/public-api.openapi"); return json(openapi(url.origin)); }
-      await rateLimit(sb, request, "read");
       if (seg[0] === "departments" && seg.length === 1) {
         const { data } = await sb.from("departments").select(DEPT_COLS).order("sort_order");
-        return json({ data: data ?? [] });
+        return { data: data ?? [] };
       }
       if (seg[0] === "departments" && seg.length === 2) {
         const { data: d } = await sb.from("departments").select(`id, ${DEPT_COLS}, description, long_description, services`).eq("slug", seg[1]!).maybeSingle();
@@ -112,7 +112,7 @@ export async function handle(request: Request, path: string): Promise<Response> 
           sb.from("doctors").select("slug, full_name, title, specialty, photo_url").eq("department_id", d.id).eq("active", true).order("full_name"),
         ]);
         const { id: _id, ...dept } = d;
-        return json({ data: { ...dept, faqs: faqs.data ?? [], doctors: docs.data ?? [] } });
+        return { data: { ...dept, faqs: faqs.data ?? [], doctors: docs.data ?? [] } };
       }
       if (seg[0] === "doctors" && seg.length === 1) {
         const dep = url.searchParams.get("department");
@@ -126,17 +126,17 @@ export async function handle(request: Request, path: string): Promise<Response> 
         const { data } = await query;
         const rows = (data ?? []).map(({ department_id: _x, ...r }) => r)
           .filter((r: any) => !q || `${r.title} ${r.full_name} ${r.specialty ?? ""} ${r.departments?.name ?? ""}`.toLocaleLowerCase("tr").includes(q));
-        return json({ data: rows });
+        return { data: rows };
       }
       if (seg[0] === "doctors" && seg.length === 2) {
         const { id: _id, slot_minutes: _s, ...doc } = await doctorBySlug(sb, seg[1]!);
-        return json({ data: { ...doc, timezone: "Europe/Istanbul" } });
+        return { data: { ...doc, timezone: "Europe/Istanbul" } };
       }
       if (seg[0] === "doctors" && seg.length === 3 && seg[2] === "slots") {
         const date = parse(ymd, url.searchParams.get("date") ?? "");
         const doc = await doctorBySlug(sb, seg[1]!);
         const r = await freeSlots(sb, doc, date);
-        return json({ data: { doctor: doc.slug, date, timezone: "Europe/Istanbul", ...r } });
+        return { data: { doctor: doc.slug, date, timezone: "Europe/Istanbul", ...r } };
       }
       if (seg[0] === "closed-days") {
         const from = parse(ymd, url.searchParams.get("from") ?? istanbulYmd(new Date()));
@@ -144,18 +144,17 @@ export async function handle(request: Request, path: string): Promise<Response> 
         let q = sb.from("closed_days").select("day, reason").gte("day", from).order("day").limit(366);
         if (to) q = q.lte("day", parse(ymd, to));
         const { data } = await q;
-        return json({ data: data ?? [] });
+        return { data: data ?? [] };
       }
       if (seg[0] === "info") {
         const { data } = await sb.rpc("kb_fallback", { _count: 30 });
-        return json({ data: { name: "Medicare Hastanesi", timezone: "Europe/Istanbul", articles: (data ?? []).filter((a: any) => !String(a.title).startsWith("📄")).map((a: any) => ({ title: a.title, content: a.content })) } });
+        return { data: { name: "Medicare Hastanesi", timezone: "Europe/Istanbul", articles: (data ?? []).filter((a: any) => !String(a.title).startsWith("📄")).map((a: any) => ({ title: a.title, content: a.content })) } };
       }
     }
 
     if (method === "POST" && seg[0] === "appointments") {
-      await rateLimit(sb, request, "write");
       if (seg.length === 1) {
-        const b = parse(BookSchema, await body(request));
+        const b = parse(BookSchema, await body());
         const doc = await doctorBySlug(sb, b.doctor);
         const iso = new Date(b.starts_at).toISOString();
         const r = await freeSlots(sb, doc, istanbulYmd(new Date(iso)));
@@ -168,23 +167,34 @@ export async function handle(request: Request, path: string): Promise<Response> 
           if (error.message.includes("duplicate")) throw new ApiError(409, "slot_taken", "Bu saat az önce doldu, başka saat seçin");
           throw new ApiError(422, "booking_rejected", error.message);
         }
-        return json({ data: { code: data, starts_at: iso, doctor: doc.slug, status: "pending" } }, 201);
+        return { data: { code: data, starts_at: iso, doctor: doc.slug, status: "pending" }, status: 201 };
       }
       if (seg[1] === "lookup") {
-        const b = parse(CodePhoneSchema, await body(request));
+        const b = parse(CodePhoneSchema, await body());
         const { data } = await sb.rpc("lookup_appointment", { _code: b.code.toUpperCase(), _phone: b.phone });
         if (!data?.length) throw new ApiError(404, "appointment_not_found", "Randevu bulunamadı");
-        return json({ data: data.map((a) => ({ code: a.code, starts_at: a.starts_at, status: a.status, doctor_name: a.doctor_name, department_name: a.department_name, patient_name: maskName(a.patient_name ?? "") })) });
+        return { data: data.map((a) => ({ code: a.code, starts_at: a.starts_at, status: a.status, doctor_name: a.doctor_name, department_name: a.department_name, patient_name: maskName(a.patient_name ?? "") })) };
       }
       if (seg[1] === "cancel") {
-        const b = parse(CodePhoneSchema, await body(request));
+        const b = parse(CodePhoneSchema, await body());
         const { data, error } = await sb.rpc("cancel_appointment_public", { _code: b.code.toUpperCase(), _phone: b.phone });
         if (error) throw new ApiError(422, "cancel_rejected", error.message);
         if (!data) throw new ApiError(404, "appointment_not_found", "İptal edilebilir randevu bulunamadı");
-        return json({ data: { code: b.code.toUpperCase(), status: "cancelled" } });
+        return { data: { code: b.code.toUpperCase(), status: "cancelled" } };
       }
     }
     throw new ApiError(404, "not_found", "Uç nokta bulunamadı");
+}
+
+export async function handle(request: Request, path: string): Promise<Response> {
+  try {
+    const url = new URL(request.url);
+    const method = request.method === "POST" ? "POST" : "GET";
+    if (method === "GET" && path === "openapi.json") { const { openapi } = await import("@/lib/public-api.openapi"); return json(openapi(url.origin)); }
+    const sb = pubClient();
+    await rateLimit(sb, request, method === "POST" ? "write" : "read");
+    const r = await apiCall(sb, method, path, url.searchParams, () => body(request));
+    return json({ data: r.data }, r.status ?? 200);
   } catch (e) {
     return errorResponse(e);
   }
