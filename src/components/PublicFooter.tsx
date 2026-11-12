@@ -50,7 +50,7 @@ function FooterCol({ title, children }: { title: string; children: React.ReactNo
   );
 }
 
-function FLink({ to, children }: { to: "/bolumler" | "/doktorlar" | "/auth" | "/randevu" | "/randevu-sorgula"; children: React.ReactNode }) {
+function FLink({ to, children }: { to: "/bolumler" | "/doktorlar" | "/auth" | "/randevu" | "/randevu-sorgula" | "/api-docs"; children: React.ReactNode }) {
   return <li><Link to={to} className="transition hover:text-primary">{children}</Link></li>;
 }
 
