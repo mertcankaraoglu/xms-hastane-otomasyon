@@ -5,3 +5,4 @@
 - [x] Expand per-answer RAG details and clearly identify missing historical source records.
 - [x] Verify recorded and unrecorded source states in the signed-in conversations panel.- [x] Public API v1 (bilgi, slot, randevu al/sorgula/iptal) + /api-docs
 - [x] MCP server (9 araç) + /mcp-baglanti bağlantı sayfası
+- [x] Sohbetler paneline MCP/API/web araç kayıtları (kanal, araç, parametre, sonuç)
