@@ -8,6 +8,7 @@ import { PublicHeader } from "@/components/PublicHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { fmtDateTime, STATUS_LABEL, STATUS_CLASS, HOSPITAL_NAME, type Status } from "@/lib/hospital";
 import { cn } from "@/lib/utils";
+import { bookingPhoneSchema, phoneInput } from "@/lib/phone";
 
 export const Route = createFileRoute("/randevu-sorgula")({
   head: () => ({
@@ -16,6 +17,8 @@ export const Route = createFileRoute("/randevu-sorgula")({
       { name: "description", content: "Randevu kodunuz ve telefonunuzla randevunuzu görüntüleyin veya iptal edin." },
       { property: "og:title", content: `Randevu Sorgula — ${HOSPITAL_NAME}` },
       { property: "og:description", content: "Randevu kodunuz ve telefonunuzla randevunuzu görüntüleyin veya iptal edin." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: LookupPage,
@@ -28,9 +31,14 @@ function LookupPage() {
   const [phone, setPhone] = useState("");
   const [res, setRes] = useState<Result | null>();
   const [loading, setLoading] = useState(false);
+  const [phoneTouched, setPhoneTouched] = useState(false);
+  const phoneValidation = bookingPhoneSchema.safeParse(phone);
+  const phoneError = phoneTouched && !phoneValidation.success ? phoneValidation.error.issues[0]?.message : undefined;
 
   async function lookup() {
-    if (code.trim().length < 6 || phone.trim().length < 10) { toast.error("Kod ve telefon girin"); return; }
+    setPhoneTouched(true);
+    if (!phoneValidation.success) { toast.error(phoneValidation.error.issues[0]?.message ?? "Geçerli bir telefon girin"); return; }
+    if (code.trim().length < 6) { toast.error("Randevu kodunu girin"); return; }
     setLoading(true);
     const { data, error } = await supabase.rpc("lookup_appointment", { _code: code.trim(), _phone: phone.trim() });
     setLoading(false);
@@ -38,6 +46,7 @@ function LookupPage() {
     setRes((data?.[0] as Result) ?? null);
   }
   async function cancel() {
+    if (!phoneValidation.success) { setPhoneTouched(true); return; }
     const { data, error } = await supabase.rpc("cancel_appointment_public", { _code: code.trim(), _phone: phone.trim() });
     if (error || !data) { toast.error("Randevu iptal edilemedi"); return; }
     toast.success("Randevunuz iptal edildi");
@@ -51,7 +60,11 @@ function LookupPage() {
         <h1 className="text-3xl font-bold">Randevu Sorgula</h1>
         <div className="mt-6 grid gap-4 rounded-xl border bg-card p-6">
           <div className="grid gap-1.5"><Label>Randevu Kodu</Label><Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={8} /></div>
-          <div className="grid gap-1.5"><Label>Telefon</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} /></div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="lookup-phone">Telefon</Label>
+            <Input id="lookup-phone" type="tel" inputMode="numeric" autoComplete="tel-national" placeholder="05XXXXXXXXX" maxLength={11} value={phone} aria-invalid={!!phoneError} aria-describedby={phoneError ? "lookup-phone-error" : undefined} onBlur={() => setPhoneTouched(true)} onChange={(e) => { setPhone(phoneInput(e.target.value)); setRes(undefined); }} />
+            {phoneError && <p id="lookup-phone-error" role="alert" className="text-sm text-destructive">{phoneError}</p>}
+          </div>
           <Button onClick={lookup} disabled={loading}>Sorgula</Button>
         </div>
         {res === null && <p className="mt-6 text-center text-muted-foreground">Randevu bulunamadı.</p>}
