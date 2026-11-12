@@ -187,15 +187,25 @@ export async function apiCall(sb: Sb, method: "GET" | "POST", path: string, quer
 }
 
 export async function handle(request: Request, path: string): Promise<Response> {
+  const url = new URL(request.url);
+  const method = request.method === "POST" ? "POST" : "GET";
+  if (method === "GET" && path === "openapi.json") { const { openapi } = await import("@/lib/public-api.openapi"); return json(openapi(url.origin)); }
+  const t0 = Date.now();
+  let reqBody: unknown = undefined;
+  const log = async (status: number, result: unknown, err?: string) => {
+    const ev = await import("@/lib/event-log.server");
+    void ev.logEvent({ channel: "rest", tool: `${method} /${path}`, method, path: `/api/public/v1/${path}`, client: request.headers.get("user-agent"), ipHash: await ev.ipHash(request),
+      params: { query: Object.fromEntries(url.searchParams), body: reqBody }, result, status: status < 400 ? "ok" : "error", error: err ?? null, httpStatus: status, durationMs: Date.now() - t0 });
+  };
   try {
-    const url = new URL(request.url);
-    const method = request.method === "POST" ? "POST" : "GET";
-    if (method === "GET" && path === "openapi.json") { const { openapi } = await import("@/lib/public-api.openapi"); return json(openapi(url.origin)); }
     const sb = pubClient();
     await rateLimit(sb, request, method === "POST" ? "write" : "read");
-    const r = await apiCall(sb, method, path, url.searchParams, () => body(request));
+    const r = await apiCall(sb, method, path, url.searchParams, async () => (reqBody = await body(request)));
+    await log(r.status ?? 200, r.data);
     return json({ data: r.data }, r.status ?? 200);
   } catch (e) {
-    return errorResponse(e);
+    const res = errorResponse(e);
+    await log(res.status, null, e instanceof ApiError ? `${e.code}: ${e.message}` : String((e as any)?.message ?? e));
+    return res;
   }
 }
