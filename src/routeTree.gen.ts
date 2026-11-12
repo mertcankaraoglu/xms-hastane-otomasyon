@@ -15,6 +15,7 @@ import { Route as ApiDocsRouteImport } from './routes/api-docs'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as RandevuRouteImport } from './routes/randevu'
 import { Route as RandevuSorgulaRouteImport } from './routes/randevu-sorgula'
+import { Route as ApiDocsSwaggerRouteImport } from './routes/api-docs_.swagger'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as BolumlerIndexRouteImport } from './routes/bolumler.index'
 import { Route as BolumlerSlugRouteImport } from './routes/bolumler.$slug'
@@ -59,6 +60,11 @@ const RandevuRoute = RandevuRouteImport.update({
 const RandevuSorgulaRoute = RandevuSorgulaRouteImport.update({
   id: '/randevu-sorgula',
   path: '/randevu-sorgula',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDocsSwaggerRoute = ApiDocsSwaggerRouteImport.update({
+  id: '/api-docs_/swagger',
+  path: '/api-docs/swagger',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
@@ -157,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/randevu': typeof RandevuRoute
   '/randevu-sorgula': typeof RandevuSorgulaRoute
+  '/api-docs/swagger': typeof ApiDocsSwaggerRoute
   '/api/chat': typeof ApiChatRoute
   '/bolumler/$slug': typeof BolumlerSlugRoute
   '/doktorlar/$slug': typeof DoktorlarSlugRoute
@@ -180,6 +187,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/randevu': typeof RandevuRoute
   '/randevu-sorgula': typeof RandevuSorgulaRoute
+  '/api-docs/swagger': typeof ApiDocsSwaggerRoute
   '/api/chat': typeof ApiChatRoute
   '/bolumler/$slug': typeof BolumlerSlugRoute
   '/doktorlar/$slug': typeof DoktorlarSlugRoute
@@ -205,6 +213,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/randevu': typeof RandevuRoute
   '/randevu-sorgula': typeof RandevuSorgulaRoute
+  '/api-docs_/swagger': typeof ApiDocsSwaggerRoute
   '/api/chat': typeof ApiChatRoute
   '/bolumler/$slug': typeof BolumlerSlugRoute
   '/doktorlar/$slug': typeof DoktorlarSlugRoute
@@ -230,6 +239,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/randevu'
     | '/randevu-sorgula'
+    | '/api-docs/swagger'
     | '/api/chat'
     | '/bolumler/$slug'
     | '/doktorlar/$slug'
@@ -253,6 +263,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/randevu'
     | '/randevu-sorgula'
+    | '/api-docs/swagger'
     | '/api/chat'
     | '/bolumler/$slug'
     | '/doktorlar/$slug'
@@ -277,6 +288,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/randevu'
     | '/randevu-sorgula'
+    | '/api-docs_/swagger'
     | '/api/chat'
     | '/bolumler/$slug'
     | '/doktorlar/$slug'
@@ -302,6 +314,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   RandevuRoute: typeof RandevuRoute
   RandevuSorgulaRoute: typeof RandevuSorgulaRoute
+  ApiDocsSwaggerRoute: typeof ApiDocsSwaggerRoute
   ApiChatRoute: typeof ApiChatRoute
   BolumlerSlugRoute: typeof BolumlerSlugRoute
   DoktorlarSlugRoute: typeof DoktorlarSlugRoute
@@ -352,6 +365,13 @@ declare module '@tanstack/react-router' {
       path: '/randevu-sorgula'
       fullPath: '/randevu-sorgula'
       preLoaderRoute: typeof RandevuSorgulaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api-docs_/swagger': {
+      id: '/api-docs_/swagger'
+      path: '/api-docs/swagger'
+      fullPath: '/api-docs/swagger'
+      preLoaderRoute: typeof ApiDocsSwaggerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/chat': {
@@ -505,6 +525,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   RandevuRoute: RandevuRoute,
   RandevuSorgulaRoute: RandevuSorgulaRoute,
+  ApiDocsSwaggerRoute: ApiDocsSwaggerRoute,
   ApiChatRoute: ApiChatRoute,
   BolumlerSlugRoute: BolumlerSlugRoute,
   DoktorlarSlugRoute: DoktorlarSlugRoute,
