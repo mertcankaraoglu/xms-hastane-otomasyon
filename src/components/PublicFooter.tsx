@@ -18,6 +18,7 @@ export function PublicFooter() {
           <FLink to="/bolumler">Bölümlerimiz</FLink>
           <FLink to="/doktorlar">Doktorlarımız</FLink>
           <FLink to="/api-docs">Geliştiriciler (API)</FLink>
+          <FLink to="/mcp-baglanti">Claude / ChatGPT Bağlantısı</FLink>
           <FLink to="/auth">Personel Girişi</FLink>
         </FooterCol>
         <FooterCol title="Hasta Hizmetleri">
@@ -50,7 +51,7 @@ function FooterCol({ title, children }: { title: string; children: React.ReactNo
   );
 }
 
-function FLink({ to, children }: { to: "/bolumler" | "/doktorlar" | "/auth" | "/randevu" | "/randevu-sorgula" | "/api-docs"; children: React.ReactNode }) {
+function FLink({ to, children }: { to: "/bolumler" | "/doktorlar" | "/auth" | "/randevu" | "/randevu-sorgula" | "/api-docs" | "/mcp-baglanti"; children: React.ReactNode }) {
   return <li><Link to={to} className="transition hover:text-primary">{children}</Link></li>;
 }
 
