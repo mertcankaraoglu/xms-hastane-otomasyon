@@ -1,4 +1,5 @@
 import { defineMcp } from "@lovable.dev/mcp-js";
+import { withLog } from "./run";
 import listDepartments from "./tools/list-departments";
 import getDepartment from "./tools/get-department";
 import searchDoctors from "./tools/search-doctors";
@@ -20,5 +21,5 @@ export default defineMcp({
     "Randevu akışı: list_departments/search_doctors → get_available_slots → ad soyad, 11 haneli TC, 0 ile başlayan 11 haneli telefon toplayın → özetleyip açık onay alın → book_appointment. Kodu kullanıcıya verin.",
     "İptal için manage_appointment(action=cancel) çağırmadan önce mutlaka onay alın.",
   ].join("\n"),
-  tools: [listDepartments, getDepartment, searchDoctors, getDoctorProfile, getHospitalInfo, searchKnowledge, getAvailableSlots, bookAppointment, manageAppointment],
+  tools: [listDepartments, getDepartment, searchDoctors, getDoctorProfile, getHospitalInfo, searchKnowledge, getAvailableSlots, bookAppointment, manageAppointment].map(withLog),
 });
