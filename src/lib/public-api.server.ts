@@ -105,7 +105,7 @@ export async function handle(request: Request, path: string): Promise<Response> 
         return json({ data: data ?? [] });
       }
       if (seg[0] === "departments" && seg.length === 2) {
-        const { data: d } = await sb.from("departments").select(`id, ${DEPT_COLS}, description, long_description, services`).eq("slug", seg[1]).maybeSingle();
+        const { data: d } = await sb.from("departments").select(`id, ${DEPT_COLS}, description, long_description, services`).eq("slug", seg[1]!).maybeSingle();
         if (!d) throw new ApiError(404, "department_not_found", "Bölüm bulunamadı");
         const [faqs, docs] = await Promise.all([
           sb.from("department_faqs").select("question, answer").eq("department_id", d.id).order("sort_order"),
@@ -129,12 +129,12 @@ export async function handle(request: Request, path: string): Promise<Response> 
         return json({ data: rows });
       }
       if (seg[0] === "doctors" && seg.length === 2) {
-        const { id: _id, slot_minutes: _s, ...doc } = await doctorBySlug(sb, seg[1]);
+        const { id: _id, slot_minutes: _s, ...doc } = await doctorBySlug(sb, seg[1]!);
         return json({ data: { ...doc, timezone: "Europe/Istanbul" } });
       }
       if (seg[0] === "doctors" && seg.length === 3 && seg[2] === "slots") {
         const date = parse(ymd, url.searchParams.get("date") ?? "");
-        const doc = await doctorBySlug(sb, seg[1]);
+        const doc = await doctorBySlug(sb, seg[1]!);
         const r = await freeSlots(sb, doc, date);
         return json({ data: { doctor: doc.slug, date, timezone: "Europe/Istanbul", ...r } });
       }
