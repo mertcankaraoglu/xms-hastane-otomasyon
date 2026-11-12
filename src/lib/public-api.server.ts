@@ -2,6 +2,7 @@ import { z } from "zod";
 import { bookingPhoneSchema } from "@/lib/phone";
 import { generateSlots, istanbulYmd, dayBoundsUtc, type WorkingHours } from "@/lib/slots";
 import { pubClient } from "@/lib/medi-ai.server";
+export { pubClient };
 
 export const CORS = {
   "Access-Control-Allow-Origin": "*",
