@@ -40,20 +40,22 @@ export async function ipHash(req?: Request | null) {
 }
 
 export type LogInput = {
-  channel: Channel; tool: string; conversationId?: string | null; sessionId?: string | null; client?: string | null;
-  ipHash?: string | null; method?: string; path?: string; params?: unknown; result?: unknown;
-  status?: "ok" | "error"; error?: string | null; httpStatus?: number; durationMs?: number; step?: number;
+  channel: Channel; tool: string; conversationId?: string | null | undefined; sessionId?: string | null | undefined; client?: string | null | undefined;
+  ipHash?: string | null | undefined; method?: string | undefined; path?: string | undefined; params?: unknown | undefined; result?: unknown | undefined;
+  status?: "ok" | "error" | undefined; error?: string | null | undefined; httpStatus?: number | undefined; durationMs?: number | undefined; step?: number | undefined;
 };
 
 /** Never throws — logging must not break the user-facing call. */
 export async function logEvent(e: LogInput) {
   try {
-    const { error } = await pubClient().rpc("log_integration_event", {
+    const args = Object.fromEntries(Object.entries({
       _channel: e.channel, _tool: e.tool, _conversation_id: e.conversationId ?? undefined, _session_id: e.sessionId ?? undefined,
       _client: e.client ?? undefined, _ip_hash: e.ipHash ?? undefined, _method: e.method, _path: e.path,
       _params: (redact(e.params ?? null) ?? null) as any, _result: (redact(e.result ?? null) ?? null) as any,
       _status: e.status ?? "ok", _error: e.error ?? undefined, _http_status: e.httpStatus, _duration_ms: e.durationMs, _step: e.step,
-    });
+    }).filter(([, v]) => v !== undefined && v !== null || false)) as any;
+    args._params = (redact(e.params ?? null) ?? null) as any; args._result = (redact(e.result ?? null) ?? null) as any;
+    const { error } = await pubClient().rpc("log_integration_event", args);
     if (error) console.error("integration log failed", error.message);
   } catch (err) { console.error("integration log failed", err); }
 }

@@ -15,7 +15,7 @@ export type IntegrationEvent = {
 export const CHANNEL_LABEL: Record<string, string> = { web_chat: "Web sohbet (Medi AI)", mcp: "MCP (Claude/ChatGPT)", rest: "REST API" };
 const fmt = (s: string) => new Date(s).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul", dateStyle: "short", timeStyle: "medium" });
 
-export function useIntegrationEvents(filter: { channel?: string; conversationId?: string | null }) {
+export function useIntegrationEvents(filter: { channel?: string | undefined; conversationId?: string | null | undefined }) {
   return useQuery({
     queryKey: ["integration-events", filter.channel ?? "all", filter.conversationId ?? null],
     enabled: filter.conversationId !== null,
