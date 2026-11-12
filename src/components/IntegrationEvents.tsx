@@ -20,9 +20,9 @@ export function useIntegrationEvents(filter: { channel?: string; conversationId?
     queryKey: ["integration-events", filter.channel ?? "all", filter.conversationId ?? null],
     enabled: filter.conversationId !== null,
     queryFn: async () => {
-      let q = supabase.from("integration_events").select("*").order("created_at", { ascending: false }).limit(500);
+      let q = supabase.from("integration_events").select("*").order("created_at", { ascending: !!filter.conversationId }).limit(500);
       if (filter.channel) q = q.eq("channel", filter.channel);
-      if (filter.conversationId) q = q.eq("conversation_id", filter.conversationId).order("created_at", { ascending: true });
+      if (filter.conversationId) q = q.eq("conversation_id", filter.conversationId);
       const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as IntegrationEvent[];
