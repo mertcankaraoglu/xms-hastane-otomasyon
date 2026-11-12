@@ -37,3 +37,4 @@ use the editor.
 - Booking phone input and validation share `src/lib/phone.ts`; the booking RPC also validates digit counts so browser checks cannot be bypassed.
 - Medi AI chatbot: replies stream as plain text from `/api/chat` (not a server fn, since RPC cannot stream); agent loop + tools live in `src/lib/medi-ai.server.ts` (server-only); visitors reach chats only via token-checked SECURITY DEFINER RPCs (`chat_start/history/append`), never tables directly — keeps anonymous chats private while staff read via RLS.
 - KB RAG uses 768-dim embeddings stored on `kb_articles.embedding`; always re-embed on save (`saveKbArticle`) so search stays consistent.
+- Medi AI doctor detail requests use `get_doctor_profile` with an explicit public-field projection and an active filter, rather than the directory summary or KB, so chat reflects staff-edited profiles without exposing private records.
