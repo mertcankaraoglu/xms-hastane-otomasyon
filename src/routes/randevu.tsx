@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { iconFor, fmtDateTime, fmtTime, HOSPITAL_NAME } from "@/lib/hospital";
 import { generateSlots, istanbulYmd, dayBoundsUtc, type WorkingHours } from "@/lib/slots";
 import { cn } from "@/lib/utils";
+import { bookingPhoneSchema, phoneInput } from "@/lib/phone";
 
 export const Route = createFileRoute("/randevu")({
   validateSearch: z.object({ department: z.string().optional(), doctor: z.string().optional() }),
@@ -23,6 +24,8 @@ export const Route = createFileRoute("/randevu")({
       { name: "description", content: "Bölüm, doktor ve saat seçerek birkaç adımda randevunuzu oluşturun." },
       { property: "og:title", content: `Online Randevu Al — ${HOSPITAL_NAME}` },
       { property: "og:description", content: "Bölüm, doktor ve saat seçerek birkaç adımda randevunuzu oluşturun." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: BookingPage,
@@ -31,7 +34,7 @@ export const Route = createFileRoute("/randevu")({
 const patientSchema = z.object({
   full_name: z.string().trim().min(3, "Ad soyad girin").max(100),
   tc_no: z.string().trim().regex(/^\d{11}$/, "TC kimlik no 11 haneli olmalı"),
-  phone: z.string().trim().regex(/^[0-9 +()-]{10,20}$/, "Geçerli bir telefon girin"),
+  phone: bookingPhoneSchema,
   email: z.string().trim().email("Geçerli e-posta girin").max(255).or(z.literal("")),
   complaint: z.string().trim().max(500),
 });
@@ -45,6 +48,9 @@ function BookingPage() {
   const [form, setForm] = useState({ full_name: "", tc_no: "", phone: "", email: "", complaint: "" });
   const [submitting, setSubmitting] = useState(false);
   const [code, setCode] = useState<string>();
+  const [phoneTouched, setPhoneTouched] = useState(false);
+  const phoneValidation = bookingPhoneSchema.safeParse(form.phone);
+  const phoneError = phoneTouched && !phoneValidation.success ? phoneValidation.error.issues[0]?.message : undefined;
 
   const step = !deptId ? 1 : !doctorId ? 2 : !slot ? 3 : 4;
 
@@ -81,6 +87,7 @@ function BookingPage() {
   }, [doctor, ymd]);
 
   async function submit() {
+    setPhoneTouched(true);
     const parsed = patientSchema.safeParse(form);
     if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? "Hatalı bilgi"); return; }
     setSubmitting(true);
@@ -223,7 +230,10 @@ function BookingPage() {
               <Field label="Ad Soyad *"><Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></Field>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="TC Kimlik No *"><Input inputMode="numeric" maxLength={11} value={form.tc_no} onChange={(e) => setForm({ ...form, tc_no: e.target.value })} /></Field>
-                <Field label="Telefon *"><Input placeholder="05XX XXX XX XX" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
+                <Field label="Telefon *">
+                  <Input type="tel" inputMode="numeric" autoComplete="tel-national" aria-label="Telefon" placeholder="05XXXXXXXXX" maxLength={11} value={form.phone} aria-invalid={!!phoneError} aria-describedby={phoneError ? "phone-error" : undefined} onBlur={() => setPhoneTouched(true)} onChange={(e) => setForm({ ...form, phone: phoneInput(e.target.value) })} />
+                  {phoneError && <p id="phone-error" role="alert" className="text-sm text-destructive">{phoneError}</p>}
+                </Field>
               </div>
               <Field label="E-posta"><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
               <Field label="Şikayetiniz"><Textarea value={form.complaint} onChange={(e) => setForm({ ...form, complaint: e.target.value })} /></Field>

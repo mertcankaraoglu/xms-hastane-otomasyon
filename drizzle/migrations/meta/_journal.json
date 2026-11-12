@@ -78,6 +78,13 @@
       "when": 1793900439179,
       "tag": "0010_kb_restrict_direct_read",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794501504670,
+      "tag": "0011_booking_phone_validation",
+      "breakpoints": true
     }
   ]
 }

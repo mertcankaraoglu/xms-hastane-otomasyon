@@ -34,5 +34,6 @@ use the editor.
 - Anonymous patients never touch tables directly; public booking/lookup/cancel go through SECURITY DEFINER RPCs (`book_appointment`, `lookup_appointment`, `cancel_appointment_public`, `get_booked_slots`) so patient data stays private.
 - Double booking is prevented by a partial unique index on (doctor_id, starts_at) excluding cancelled rows — keep it as the source of truth.
 - All times are Europe/Istanbul (fixed UTC+3); slot math lives in `src/lib/slots.ts`.
+- Booking phone input and validation share `src/lib/phone.ts`; the booking RPC also validates digit counts so browser checks cannot be bypassed.
 - Medi AI chatbot: replies stream as plain text from `/api/chat` (not a server fn, since RPC cannot stream); agent loop + tools live in `src/lib/medi-ai.server.ts` (server-only); visitors reach chats only via token-checked SECURITY DEFINER RPCs (`chat_start/history/append`), never tables directly — keeps anonymous chats private while staff read via RLS.
 - KB RAG uses 768-dim embeddings stored on `kb_articles.embedding`; always re-embed on save (`saveKbArticle`) so search stays consistent.
