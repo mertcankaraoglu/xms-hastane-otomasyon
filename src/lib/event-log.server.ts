@@ -1,6 +1,6 @@
 // Server-only: records tool/endpoint calls from web chat, MCP and REST into integration_events
 // via the log_integration_event SECURITY DEFINER RPC. Patient PII is masked before storage.
-import { pubClient } from "./medi-ai.server";
+import { adminClient } from "./medi-ai.server";
 
 export type Channel = "web_chat" | "mcp" | "rest";
 const PII = new Set(["tc_no", "tc", "phone", "email", "full_name", "patient_name", "_tc_no", "_phone", "_email", "_full_name"]);
@@ -55,7 +55,7 @@ export async function logEvent(e: LogInput) {
       _status: e.status ?? "ok", _error: e.error ?? undefined, _http_status: e.httpStatus, _duration_ms: e.durationMs, _step: e.step,
     }).filter(([, v]) => v !== undefined && v !== null || false)) as any;
     args._params = (redact(e.params ?? null) ?? null) as any; args._result = (redact(e.result ?? null) ?? null) as any;
-    const { error } = await pubClient().rpc("log_integration_event", args);
+    const { error } = await (await adminClient()).rpc("log_integration_event", args);
     if (error) console.error("integration log failed", error.message);
   } catch (err) { console.error("integration log failed", err); }
 }

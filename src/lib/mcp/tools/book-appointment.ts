@@ -3,7 +3,7 @@ import { z } from "zod";
 import { call, ok } from "../run";
 export default defineTool({
   name: "book_appointment", title: "Randevu oluştur",
-  description: "Randevu oluşturur ve randevu kodunu döner. SADECE kullanıcı doktor, saat ve kişisel bilgilerin özetini gördükten sonra açıkça onay verdiyse çağırın.",
+  description: "Randevu oluşturur ve randevu kodunu döner. SADECE kullanıcı doktor, saat ve kişisel bilgilerin özetini gördükten sonra açıkça onay verdiyse çağırın. Olası hata kodları: past_time, hospital_closed, outside_working_hours, invalid_slot, doctor_inactive, slot_taken/slot_unavailable (başka saat seçin), tc_phone_mismatch (TC farklı telefonla kayıtlı; kayıtlı telefonu isteyin), too_many_active (en fazla 3 ileri tarihli aktif randevu), same_day_duplicate (aynı gün aynı doktora ikinci randevu yok).",
   inputSchema: {
     doctor: z.string().min(1).max(120).describe("Doktor slug"),
     starts_at: z.string().describe("get_available_slots'tan gelen iso değeri"),

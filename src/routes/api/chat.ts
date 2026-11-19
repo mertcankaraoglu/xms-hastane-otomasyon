@@ -32,7 +32,7 @@ export const Route = createFileRoute("/api/chat")({
             const { ipHash } = await import("@/lib/event-log.server");
             const ctx = { conversationId: data.id, ipHash: await ipHash(request), client: request.headers.get("user-agent")?.slice(0, 300) ?? null };
             const { text: reply, sources } = await runAgent(history, (t) => controller.enqueue(enc.encode(t)), ctx);
-            const { error: e2 } = await sb.rpc("chat_append_assistant", { _id: data.id, _token: data.token, _content: reply.slice(0, 8000), _sources: sources as any });
+            const { error: e2 } = await (await (await import("@/lib/medi-ai.server")).adminClient()).rpc("chat_append_assistant", { _id: data.id, _token: data.token, _content: reply.slice(0, 8000), _sources: sources as any });
             if (e2) console.error("assistant message save failed", e2.message);
             controller.close();
           },

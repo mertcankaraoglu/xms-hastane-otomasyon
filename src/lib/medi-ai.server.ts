@@ -21,6 +21,11 @@ export function pubClient() {
 }
 type SB = ReturnType<typeof pubClient>;
 
+/** Service-role client for server-only RPCs (logging, rate limit, KB search, assistant messages). */
+export async function adminClient() {
+  return (await import("@/integrations/supabase/client.server")).supabaseAdmin;
+}
+
 export async function embed(texts: string[]): Promise<number[][]> {
   const res = await generateEmbeddings({ model: EMBEDDING.model, input: texts, dimensions: EMBEDDING.dimensions });
   return res.data.map((d) => d.embedding as number[]);
@@ -52,11 +57,11 @@ export async function runTool(sb: SB, name: string, a: any): Promise<unknown> {
       let rows: { id?: string; title: string; content: string; similarity?: number }[] = [];
       try {
         const [v] = await embed([String(a.query)]);
-        const { data } = await sb.rpc("match_kb", { _embedding: JSON.stringify(v), _count: 5 });
+        const { data } = await (await adminClient()).rpc("match_kb", { _embedding: JSON.stringify(v), _count: 5 });
         rows = (data ?? []) as any;
       } catch { /* fall back below */ }
       if (rows.length === 0) {
-        const { data } = await sb.rpc("kb_fallback", { _count: 30 });
+        const { data } = await (await adminClient()).rpc("kb_fallback", { _count: 30 });
         rows = data ?? [];
       }
       return rows.map((r) => ({ id: r.id, title: r.title, content: r.content, similarity: r.similarity }));
@@ -104,7 +109,7 @@ export async function runTool(sb: SB, name: string, a: any): Promise<unknown> {
         _doctor_id: a.doctor_id, _starts_at: a.starts_at, _full_name: a.full_name, _tc_no: a.tc_no,
         _phone: a.phone, _email: a.email ?? "", _complaint: a.complaint ?? "",
       });
-      if (error) return { error: error.message.includes("duplicate") ? "Bu saat az önce doldu, başka saat seçin" : error.message };
+      if (error) { const { bookingError } = await import("@/lib/booking-errors"); const b = bookingError(error); return { error: b.message, code: b.code }; }
       return { success: true, code: data };
     }
     case "lookup_appointment": {

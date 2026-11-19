@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { departmentsQuery, doctorsQuery, type ApptRow } from "@/lib/panel-data";
 import { STATUSES, STATUS_LABEL, fmtTime, type Status } from "@/lib/hospital";
+import { bookingError } from "@/lib/booking-errors";
 import { generateSlots, dayBoundsUtc, istanbulYmd, type WorkingHours } from "@/lib/slots";
 
 type Props = { open: boolean; onOpenChange: (o: boolean) => void; appt?: ApptRow | null | undefined; defaultDate?: string | undefined };
@@ -52,6 +53,12 @@ export function AppointmentDialog({ open, onOpenChange, appt, defaultDate }: Pro
       return (data ?? []).map((x: string) => new Date(x).toISOString());
     },
   });
+  const { data: closedDay } = useQuery({
+    queryKey: ["closed-day", ymd],
+    enabled: !!ymd && open,
+    queryFn: async () => (await supabase.from("closed_days").select("day, reason").eq("day", ymd).maybeSingle()).data,
+  });
+  const today = istanbulYmd(new Date());
   const slots = useMemo(() => (doctor && ymd ? generateSlots(ymd, doctor.working_hours as WorkingHours, doctor.slot_minutes) : []), [doctor, ymd]);
 
   const { data: patientResults } = useQuery({
@@ -63,14 +70,28 @@ export function AppointmentDialog({ open, onOpenChange, appt, defaultDate }: Pro
 
   async function save() {
     if (!doctor || !slot) { toast.error("Doktor ve saat seçin"); return; }
-    setSaving(true);
-    let pid = patientId;
-    if (!pid) {
-      if (newP.full_name.trim().length < 3 || newP.phone.trim().length < 10) { setSaving(false); { toast.error("Hasta seçin veya yeni hasta bilgilerini girin"); return; } }
-      const { data, error } = await supabase.from("patients").insert({ full_name: newP.full_name.trim(), tc_no: newP.tc_no.trim() || null, phone: newP.phone.trim() }).select("id").single();
-      if (error) { setSaving(false); { toast.error(error.message); return; } }
-      pid = data.id;
+    const keepSlot = appt && new Date(appt.starts_at).toISOString() === slot;
+    if (closedDay && !keepSlot) { toast.error("Seçilen gün hastane kapalı"); return; }
+    if (new Date(slot).getTime() <= Date.now() && !keepSlot) { toast.error("Geçmiş bir saat seçilemez"); return; }
+    if (!appt) {
+      if (!patientId && (newP.full_name.trim().length < 3 || newP.phone.replace(/\D/g, "").length !== 11)) { toast.error("Hasta seçin veya yeni hasta bilgilerini girin"); return; }
+      setSaving(true);
+      // Patient + appointment are created in one database transaction, so a taken slot leaves no orphan patient.
+      const { error } = await supabase.rpc("panel_create_appointment", {
+        _doctor_id: doctor.id, _starts_at: slot, _patient_id: (patientId || null) as string,
+        _full_name: newP.full_name, _tc_no: newP.tc_no, _phone: newP.phone, _status: status, _complaint: complaint,
+      });
+      setSaving(false);
+      if (error) { toast.error(bookingError(error).message); return; }
+      toast.success("Randevu oluşturuldu");
+      qc.invalidateQueries({ queryKey: ["appointments"] });
+      qc.invalidateQueries({ queryKey: ["patient"] });
+      qc.invalidateQueries({ queryKey: ["booked-panel"] });
+      onOpenChange(false);
+      return;
     }
+    setSaving(true);
+    const pid = patientId;
     const ends = new Date(new Date(slot).getTime() + doctor.slot_minutes * 60000).toISOString();
     const payload = { patient_id: pid, doctor_id: doctor.id, starts_at: slot, ends_at: ends, status, complaint: complaint || null };
     const { error } = appt
@@ -127,7 +148,7 @@ export function AppointmentDialog({ open, onOpenChange, appt, defaultDate }: Pro
                 <SelectContent>{doctors?.filter((d) => d.department_id === deptId).map((d) => <SelectItem key={d.id} value={d.id}>{d.title} {d.full_name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div className="grid gap-1.5"><Label>Tarih</Label><Input type="date" value={ymd} onChange={(e) => { setYmd(e.target.value); setSlot(""); }} /></div>
+            <div className="grid gap-1.5"><Label>Tarih</Label><Input type="date" min={appt ? undefined : today} value={ymd} onChange={(e) => { setYmd(e.target.value); setSlot(""); }} /></div>
             <div className="grid gap-1.5"><Label>Durum</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as Status)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -139,9 +160,11 @@ export function AppointmentDialog({ open, onOpenChange, appt, defaultDate }: Pro
             <div className="grid gap-1.5"><Label>Saat</Label>
               <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
                 {slots.map((s) => {
-                  const taken = booked?.includes(s) && s !== (appt && new Date(appt.starts_at).toISOString());
+                  const current = appt && new Date(appt.starts_at).toISOString() === s;
+                  const taken = !current && (booked?.includes(s) || new Date(s).getTime() <= Date.now() || !!closedDay);
                   return <Button key={s} size="sm" type="button" variant={slot === s ? "default" : "outline"} disabled={taken} onClick={() => setSlot(s)}>{fmtTime(s)}</Button>;
                 })}
+                {closedDay && <p className="col-span-full text-sm text-destructive">Hastane bu gün kapalı{closedDay.reason ? ` (${closedDay.reason})` : ""}; saat seçilemez.</p>}
                 {slots.length === 0 && <p className="col-span-full text-sm text-muted-foreground">Doktor bu gün çalışmıyor.</p>}
               </div>
             </div>

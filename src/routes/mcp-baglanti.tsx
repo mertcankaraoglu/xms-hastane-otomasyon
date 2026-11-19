@@ -133,6 +133,7 @@ function McpPage() {
             <li><B>Bağlanmıyor:</B> Adresin sonunda <code>/mcp</code> olduğundan ve kimlik doğrulamanın "yok" seçildiğinden emin olun.</li>
             <li><B>Araçlar görünmüyor:</B> Connector'ı sohbet içinde etkinleştirin veya yenileyin.</li>
             <li><B>"slot_taken / slot_unavailable":</B> Saat doldu; boş saatleri yeniden isteyin.</li>
+            <li><B>"tc_phone_mismatch":</B> TC farklı telefonla kayıtlı; kayıtlı telefonu kullanın. <B>"too_many_active":</B> en fazla 3 ileri tarihli aktif randevu. <B>"same_day_duplicate":</B> aynı gün aynı doktora ikinci randevu alınamaz.</li>
             <li><B>"rate_limited":</B> Bir dakika bekleyip tekrar deneyin.</li>
             <li>REST API tercih ederseniz: <Link to="/api-docs" className="text-primary underline">Geliştirici API</Link>.</li>
           </ul>

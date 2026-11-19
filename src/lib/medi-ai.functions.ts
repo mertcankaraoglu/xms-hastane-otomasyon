@@ -33,7 +33,7 @@ export const chatSend = createServerFn({ method: "POST" })
     const { data: rows } = await sb.rpc("chat_history", { _id: data.id, _token: data.token });
     const history = (rows ?? []).slice(-30).map((r) => ({ role: r.role as "user" | "assistant", content: r.content }));
     const { text: reply, sources } = await runAgent(history);
-    const { error: e2 } = await sb.rpc("chat_append_assistant", { _id: data.id, _token: data.token, _content: reply.slice(0, 8000), _sources: sources as any });
+    const { error: e2 } = await (await (await import("@/lib/medi-ai.server")).adminClient()).rpc("chat_append_assistant", { _id: data.id, _token: data.token, _content: reply.slice(0, 8000), _sources: sources as any });
     if (e2) console.error("assistant message save failed", e2.message);
     return { reply };
   });

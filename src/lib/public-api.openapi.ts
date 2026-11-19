@@ -46,7 +46,7 @@ const schemas = {
   Booked: { type: "object", properties: { code: { type: "string", example: "5A6ED8B3" }, starts_at: { type: "string", format: "date-time" }, doctor: str, status: { type: "string", example: "pending" } } },
   Lookup: { type: "object", properties: { code: str, starts_at: { type: "string", format: "date-time" }, status: { type: "string", enum: ["pending", "confirmed", "completed", "cancelled", "no_show"] }, doctor_name: str, department_name: str, patient_name: { type: "string", example: "A** Y*****" } } },
   Cancelled: { type: "object", properties: { code: str, status: { type: "string", example: "cancelled" } } },
-  Error: { type: "object", properties: { error: { type: "object", properties: { code: { type: "string", enum: ["invalid_input", "invalid_json", "not_found", "department_not_found", "doctor_not_found", "appointment_not_found", "past_date", "hospital_closed", "slot_unavailable", "slot_taken", "booking_rejected", "cancel_rejected", "rate_limited", "internal"] }, message: str } } }, example: { error: { code: "slot_taken", message: "Bu saat az önce doldu, başka saat seçin" } } },
+  Error: { type: "object", properties: { error: { type: "object", properties: { code: { type: "string", enum: ["invalid_input", "invalid_json", "not_found", "department_not_found", "doctor_not_found", "appointment_not_found", "past_date", "hospital_closed", "slot_unavailable", "slot_taken", "booking_rejected", "invalid_phone", "doctor_inactive", "past_time", "outside_working_hours", "invalid_slot", "tc_phone_mismatch", "too_many_active", "same_day_duplicate", "cancel_rejected", "rate_limited", "internal"] }, message: str } } }, example: { error: { code: "slot_taken", message: "Bu saat az önce doldu, başka saat seçin" } } },
 };
 const RESP: Record<string, unknown> = {
   "get /departments": list("Department"), "get /departments/{slug}": ref("DepartmentDetail"),
@@ -66,7 +66,7 @@ export function openapi(origin: string) {
       responses: {
         [o.path === "/appointments" ? "201" : "200"]: { description: "Başarılı", content: { "application/json": { schema: { type: "object", properties: { data: RESP[`${o.method} ${o.path}`] } } } } },
         "400": e("Geçersiz girdi (invalid_input / invalid_json)"), "404": e("Kayıt bulunamadı"),
-        ...(o.method === "post" || o.path.endsWith("slots") ? { "409": e("Saat dolu (slot_taken / slot_unavailable)"), "422": e("Kapalı gün, geçmiş tarih veya reddedilen işlem") } : {}),
+        ...(o.method === "post" || o.path.endsWith("slots") ? { "409": e("Çakışma: slot_taken / slot_unavailable / tc_phone_mismatch / too_many_active (en fazla 3) / same_day_duplicate"), "422": e("Kurala aykırı: hospital_closed / past_date / past_time / outside_working_hours / invalid_slot / doctor_inactive / booking_rejected / cancel_rejected") } : {}),
         "429": { description: "İstek sınırı aşıldı (rate_limited)", headers: { "Retry-After": { schema: { type: "integer" }, description: "Saniye" } }, content: { "application/json": { schema: ref("Error") } } },
       },
     };

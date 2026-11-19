@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { bookingPhoneSchema } from "@/lib/phone";
 import { generateSlots, istanbulYmd, dayBoundsUtc, type WorkingHours } from "@/lib/slots";
-import { pubClient } from "@/lib/medi-ai.server";
+import { pubClient, adminClient } from "@/lib/medi-ai.server";
+import { bookingError } from "@/lib/booking-errors";
 export { pubClient };
 
 export const CORS = {
@@ -58,7 +59,7 @@ export const LIMITS = { read: 120, write: 10 } as const;
 
 export async function rateLimit(sb: ReturnType<typeof pubClient>, request: Request, bucket: keyof typeof LIMITS) {
   const ip = request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  const { data, error } = await sb.rpc("api_hit", { _ip_hash: await sha256(ip), _bucket: bucket, _limit: LIMITS[bucket] });
+  const { data, error } = await (await adminClient()).rpc("api_hit", { _ip_hash: await sha256(ip), _bucket: bucket, _limit: LIMITS[bucket] });
   if (error) { console.error("rate limit check failed", error.message); return; }
   if (data === false) throw new ApiError(429, "rate_limited", "Çok fazla istek. Lütfen biraz sonra tekrar deneyin.", { "Retry-After": "60" });
 }
@@ -147,7 +148,7 @@ export async function apiCall(sb: Sb, method: "GET" | "POST", path: string, quer
         return { data: data ?? [] };
       }
       if (seg[0] === "info") {
-        const { data } = await sb.rpc("kb_fallback", { _count: 30 });
+        const { data } = await (await adminClient()).rpc("kb_fallback", { _count: 30 });
         return { data: { name: "Medicare Hastanesi", timezone: "Europe/Istanbul", articles: (data ?? []).filter((a: any) => !String(a.title).startsWith("📄")).map((a: any) => ({ title: a.title, content: a.content })) } };
       }
     }
@@ -164,8 +165,8 @@ export async function apiCall(sb: Sb, method: "GET" | "POST", path: string, quer
           _doctor_id: doc.id, _starts_at: iso, _full_name: b.full_name, _tc_no: b.tc_no, _phone: b.phone, _email: b.email ?? "", _complaint: b.complaint ?? "",
         });
         if (error) {
-          if (error.message.includes("duplicate")) throw new ApiError(409, "slot_taken", "Bu saat az önce doldu, başka saat seçin");
-          throw new ApiError(422, "booking_rejected", error.message);
+          const be = bookingError(error);
+          throw new ApiError(be.status, be.code, be.message);
         }
         return { data: { code: data, starts_at: iso, doctor: doc.slug, status: "pending" }, status: 201 };
       }

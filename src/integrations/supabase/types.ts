@@ -562,6 +562,38 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _booking_fail: {
+        Args: { _code: string; _msg: string }
+        Returns: undefined
+      }
+      _validate_slot: {
+        Args: { _doctor_id: string; _exclude?: string; _starts_at: string }
+        Returns: {
+          active: boolean
+          bio: string | null
+          certifications: string[]
+          created_at: string
+          department_id: string
+          education: Json
+          experience: Json
+          full_name: string
+          id: string
+          interests: string[]
+          languages: string[]
+          photo_url: string | null
+          slot_minutes: number
+          slug: string | null
+          specialty: string | null
+          title: string
+          working_hours: Json
+        }
+        SetofOptions: {
+          from: "*"
+          to: "doctors"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       api_hit: {
         Args: { _bucket: string; _ip_hash: string; _limit: number }
         Returns: boolean
@@ -626,6 +658,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       kb_fallback: {
         Args: { _count?: number }
@@ -675,6 +708,19 @@ export type Database = {
           similarity: number
           title: string
         }[]
+      }
+      panel_create_appointment: {
+        Args: {
+          _complaint: string
+          _doctor_id: string
+          _full_name: string
+          _patient_id: string
+          _phone: string
+          _starts_at: string
+          _status: Database["public"]["Enums"]["appointment_status"]
+          _tc_no: string
+        }
+        Returns: string
       }
       tr_slugify: { Args: { _t: string }; Returns: string }
     }

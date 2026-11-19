@@ -1,3 +1,4 @@
+import { bookingError } from "@/lib/booking-errors";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -98,8 +99,9 @@ function BookingPage() {
     });
     setSubmitting(false);
     if (error) {
-      toast.error(error.message);
-      setSlot(undefined);
+      const be = bookingError(error);
+      toast.error(be.message);
+      if (be.code !== "tc_phone_mismatch" && be.code !== "too_many_active" && be.code !== "same_day_duplicate") setSlot(undefined);
       refetchBooked();
       return;
     }

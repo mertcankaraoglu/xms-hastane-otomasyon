@@ -99,6 +99,13 @@
       "when": 1794504276925,
       "tag": "0013_integration_events",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1795098666552,
+      "tag": "0014_booking_hardening_and_rpc_grants",
+      "breakpoints": true
     }
   ]
 }
