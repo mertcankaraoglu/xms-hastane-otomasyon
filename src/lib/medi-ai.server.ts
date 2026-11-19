@@ -1,3 +1,4 @@
+import { EMBEDDING } from "@/lib/embedding-info";
 // Server-only: Medi AI agent (RAG + appointment tools).
 import { createClient } from "@supabase/supabase-js";
 import { generateEmbeddings, generateResponse, streamResponse, GatewayError } from "@lovable.dev/ai-gateway";
@@ -21,7 +22,7 @@ export function pubClient() {
 type SB = ReturnType<typeof pubClient>;
 
 export async function embed(texts: string[]): Promise<number[][]> {
-  const res = await generateEmbeddings({ model: "google/gemini-embedding-2", input: texts, dimensions: 768 });
+  const res = await generateEmbeddings({ model: EMBEDDING.model, input: texts, dimensions: EMBEDDING.dimensions });
   return res.data.map((d) => d.embedding as number[]);
 }
 

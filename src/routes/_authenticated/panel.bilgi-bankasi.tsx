@@ -12,6 +12,28 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { supabase } from "@/integrations/supabase/client";
 import { importKbDocument, reindexKb, saveKbArticle } from "@/lib/medi-ai.functions";
 import { extractText } from "@/lib/doc-extract";
+import { EMBEDDING } from "@/lib/embedding-info";
+
+function TechInfo({ r }: { r: { dims: number; content: string; title: string; category: string; updated_at: string; created_at: string; id: string; indexed: boolean } }) {
+  const items: [string, string][] = [
+    ["Model", EMBEDDING.model],
+    ["Sağlayıcı", EMBEDDING.provider],
+    ["Boyut", r.indexed ? `${r.dims} (beklenen ${EMBEDDING.dimensions})` : "—"],
+    ["Depolama", EMBEDDING.store],
+    ["Arama", EMBEDDING.metric],
+    ["Embed girdisi", `${(r.title + r.category + r.content).length + 2} karakter (başlık + kategori + içerik)`],
+    ["İçerik", `${r.content.length} karakter`],
+    ["Durum", r.indexed ? "İndekslendi" : "İndekslenmedi"],
+    ["Son güncelleme", new Date(r.updated_at).toLocaleString("tr-TR")],
+    ["Oluşturulma", new Date(r.created_at).toLocaleString("tr-TR")],
+    ["ID", r.id],
+  ];
+  return (
+    <dl className="mt-2 grid gap-x-4 gap-y-1 rounded-lg bg-muted/50 p-2 text-xs sm:grid-cols-2 lg:grid-cols-3">
+      {items.map(([k, v]) => <div key={k} className="flex min-w-0 gap-1"><dt className="shrink-0 text-muted-foreground">{k}:</dt><dd className="truncate font-mono" title={v}>{v}</dd></div>)}
+    </dl>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/panel/bilgi-bankasi")({
   head: () => ({ meta: [{ title: "Bilgi Bankası — Yönetim Paneli" }, { name: "description", content: "Medi AI bilgi bankası" }, { property: "og:title", content: "Bilgi Bankası" }, { property: "og:description", content: "Medi AI bilgi bankası" }] }),
@@ -20,9 +42,9 @@ export const Route = createFileRoute("/_authenticated/panel/bilgi-bankasi")({
 
 type Form = { id: string | null; title: string; category: string; content: string };
 const kbQuery = { queryKey: ["kb"], queryFn: async () => {
-  const { data, error } = await supabase.from("kb_articles").select("id, title, category, content, sort_order, embedding, source_name").order("sort_order").order("created_at");
+  const { data, error } = await supabase.from("kb_articles").select("id, title, category, content, sort_order, embedding, source_name, created_at, updated_at").order("sort_order").order("created_at");
   if (error) throw error;
-  return (data ?? []).map((r) => ({ ...r, indexed: !!r.embedding, embedding: undefined }));
+  return (data ?? []).map((r) => ({ ...r, indexed: !!r.embedding, dims: r.embedding ? r.embedding.split(",").length : 0, embedding: undefined }));
 } };
 
 function KbPage() {
@@ -102,7 +124,8 @@ function KbPage() {
                 <Button size="icon" variant="ghost" onClick={(e) => { e.preventDefault(); onDeleteDoc(name); }}><Trash2 className="h-4 w-4" /></Button>
               </summary>
               <div className="mt-3 space-y-2">
-                {parts.map((p) => <p key={p.id} className="line-clamp-2 border-l-2 pl-3 text-sm text-muted-foreground">{p.content}</p>)}
+                <p className="text-xs text-muted-foreground">Parçalama: ~{EMBEDDING.chunkSize} karakter, paragraf sınırlarında · {parts.length} parça · her parça ayrı vektör</p>
+                {parts.map((p, i) => <div key={p.id} className="border-l-2 pl-3"><p className="text-xs font-medium">Parça {i + 1}/{parts.length}</p><p className="line-clamp-2 text-sm text-muted-foreground">{p.content}</p><TechInfo r={p} /></div>)}
               </div>
             </details>
           ))}
@@ -117,6 +140,7 @@ function KbPage() {
                 <p className="font-semibold">{r.title} <span className="ml-2 rounded-full bg-primary-soft px-2 py-0.5 text-xs font-medium text-primary">{r.category}</span>
                   {!r.indexed && <span className="ml-2 text-xs text-destructive">indekslenmedi</span>}</p>
                 <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{r.content}</p>
+                <TechInfo r={r} />
               </div>
               <div className="flex shrink-0 gap-1">
                 <Button size="icon" variant="ghost" onClick={() => setForm({ id: r.id, title: r.title, category: r.category, content: r.content })}><Pencil className="h-4 w-4" /></Button>
